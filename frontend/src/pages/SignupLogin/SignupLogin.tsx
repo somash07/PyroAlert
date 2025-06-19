@@ -1,0 +1,23 @@
+import { useState } from "react";
+import { Outlet } from "react-router";
+import Nav from "./components/Nav";
+
+function SignupLogin() {
+  const [status, setStatus] = useState("signup");
+
+  return (
+    <div className="h-[90vh] w-screen flex justify-center items-center ">
+      <div className="flex justify-center mt-20 items-center shadow-md rounded-md h-full w-full">
+        <div className="flex px-10 h-full w-full justify-center items-center">
+          <img src="" alt="" className="h-[80%] w-[40%]" />
+          <div className="w-[40%] h-[80%] shadow-lg overflow-hidden">
+            <Nav status={status} setStatus={setStatus} />
+            <Outlet />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default SignupLogin;

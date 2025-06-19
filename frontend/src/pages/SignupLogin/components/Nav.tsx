@@ -1,34 +1,41 @@
 import { NavLink } from "react-router-dom";
 
-function SignLoginNav({ status, setStatus }: {status: String}) {
+function Nav({
+  setStatus,
+}: {
+  status: string;
+  setStatus: (status: string) => void;
+}) {
   return (
-    <nav>
+    <nav className="bg-gray-100">
       <ul className="flex w-full justify-between h-[40px] items-center p-5">
-        <li
-          className="flex-1 flex justify-center"
-          onClick={() => setStatus("login")}
-        >
-          <NavLink
-            to="login"
-            className={({ isActive }) =>
-              isActive
-                ? "text-btnHover font-bold border-b-2 border-primary"
-                : "text-gray-500 hover:text-btnColor"
-            }
+        <div className="w-1/2">
+          <li
+            className="flex-1 flex justify-center border-r-2"
+            onClick={() => setStatus("login")}
           >
-            Login
-          </NavLink>
-        </li>
+            <NavLink
+              to="login"
+              className={({ isActive }) =>
+                isActive
+                  ? "font-semibold text-orange-400"
+                  : "text-black hover:text-gray-500"
+              }
+            >
+              Login
+            </NavLink>
+          </li>
+        </div>
         <li
           className="flex-1 flex justify-center"
           onClick={() => setStatus("signup")}
         >
           <NavLink
-            to="signup"
+            to="register"
             className={({ isActive }) =>
               isActive
-                ? "text-btnHover font-bold border-b-2 border-primary"
-                : "text-gray-500 hover:text-btnColor"
+                ? "font-semibold text-orange-400"
+                : "text-black hover:text-gray-500"
             }
           >
             Signup
@@ -39,4 +46,4 @@ function SignLoginNav({ status, setStatus }: {status: String}) {
   );
 }
 
-export default SignLoginNav;
+export default Nav;

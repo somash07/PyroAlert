@@ -1,7 +1,7 @@
 import { CookieOptions, Request, Response } from "express";
 import { User, UserType } from "../models/user.model";
 import bcrypt from "bcryptjs";
-import { ApiResponse } from "../types/apiResponse"
+import { ApiResponse } from "../types/apiResponse";
 import { signupSchema } from "../validators/signup.validators";
 import { signinSchema } from "../validators/signin.validators";
 import {
@@ -14,7 +14,7 @@ import asyncHandler from "../utils/asyncHandeler";
 import { sendCode } from "../utils/sendCode";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { maileType } from "../types/mailType"
+import { maileType } from "../types/mailType";
 import { AuthRequest } from "../middlewares/auth.middleware";
 dotenv.config();
 
@@ -23,7 +23,6 @@ const options: CookieOptions = {
   secure: true,
 };
 
-
 // abcdefg
 
 const signUpHandler = asyncHandler(
@@ -31,17 +30,23 @@ const signUpHandler = asyncHandler(
     req: Request,
     res: Response<ApiResponse>
   ): Promise<Response<ApiResponse>> => {
-    let { username, email, password, type } = req.body;
+    let { username, email, password, type, location } = req.body;
+    const { lat, lng } = location;
+
 
     // Default to "Firedepartment" if not provided
-if (!type) {
-  type = UserType.Firedepartment;
-}
+    if (!type) {
+      type = UserType.Firedepartment;
+    }
     const validationResult = signupSchema.safeParse({
       username,
       email,
       password,
       type,
+      location: {
+        lat,
+        lng,
+      },
     });
 
     if (!validationResult.success) {
@@ -55,14 +60,14 @@ if (!type) {
       });
     }
 
-    if (!username || !email || !password || !type) {
+    if (!username || !email || !password || !type || !lat ||!lng) {
       return res.status(400).json({
         success: false,
         message: "Some field is missing here",
       });
     }
 
-    if (!(Object.values(UserType).includes(type))) {
+    if (!Object.values(UserType).includes(type)) {
       return res.status(400).json({
         success: false,
         message: "Invalid user type",
@@ -86,8 +91,11 @@ if (!type) {
         existingUser.password = hashedPassword;
         existingUser.verifyCode = verifyCode;
         existingUser.verifyCodeExpiry = new Date(Date.now() + 3600000);
-
-        await existingUser.save();
+        (existingUser.location = {
+          lat: lat,
+          lng: lng,
+        }),
+          await existingUser.save();
 
         await sendCode(email, verifyCode, maileType.VERIFY_OTP);
 
@@ -107,8 +115,11 @@ if (!type) {
         verifyCode,
         isVerified: false,
         verifyCodeExpiry,
+        location: {
+          lat: lat,
+          lng: lng,
+        },
       });
-
 
       await newUser.save();
 

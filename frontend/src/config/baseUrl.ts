@@ -1,4 +1,6 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
+import axios from "axios";
+import type { AxiosInstance, InternalAxiosRequestConfig } from "axios"; // ✅ Only types
+
 
 const API: AxiosInstance = axios.create({
   baseURL: "http://localhost:8080",

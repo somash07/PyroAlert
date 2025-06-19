@@ -15,7 +15,18 @@ export interface IUser extends Document {
   verifyCodeExpiry: Date;
   refreshToken?: string;
   profile?: mongoose.Schema.Types.ObjectId;
+  location?: ILocation;
 }
+
+export interface ILocation{
+  lat: number,
+  lng: number
+}
+
+const locationSchema: Schema<ILocation> = new Schema({
+  lng: Number,
+  lat: Number,
+});
 
 const userSchema: Schema<IUser> = new Schema(
   {
@@ -33,6 +44,7 @@ const userSchema: Schema<IUser> = new Schema(
       type: String,
       required: [true, "password is required"],
     },
+    location: locationSchema,
     type: {
       type: String,
       enum: UserType,
