@@ -1,12 +1,12 @@
 import LandingNav from "@/components/LandingNav"
 import { Outlet } from "react-router-dom"
-import { ToastContainer } from "react-toastify"
+import { Toaster } from "react-hot-toast"
 
 
 const LandingPageLayout = () => {
   return (
     <div>
-      <ToastContainer position="bottom-left" />
+      <Toaster position="bottom-left" />
         <LandingNav/>
         <Outlet/>
     </div>

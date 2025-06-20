@@ -3,16 +3,16 @@ import { Outlet } from "react-router";
 import Nav from "./components/Nav";
 
 function SignupLogin() {
-  const [status, setStatus] = useState("signup");
+  const [status, setStatus] = useState("register");
 
   return (
-    <div className="h-[90vh] w-screen flex justify-center items-center ">
+    <div className="h-[100vh] w-screen flex justify-center items-center">
       <div className="flex justify-center mt-20 items-center shadow-md rounded-md h-full w-full">
         <div className="flex px-10 h-full w-full justify-center items-center">
-          <img src="" alt="" className="h-[80%] w-[40%]" />
+          <img src="/sign-up-login.jpeg" alt="" className="h-[80%] w-[40%] object-cover rounded-md" />
           <div className="w-[40%] h-[80%] shadow-lg overflow-hidden">
             <Nav status={status} setStatus={setStatus} />
-            <Outlet />
+            <Outlet/>
           </div>
         </div>
       </div>

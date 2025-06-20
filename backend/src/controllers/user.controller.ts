@@ -23,7 +23,6 @@ const options: CookieOptions = {
   secure: true,
 };
 
-// abcdefg
 
 const signUpHandler = asyncHandler(
   async (

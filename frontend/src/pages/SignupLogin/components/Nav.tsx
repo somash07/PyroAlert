@@ -28,7 +28,7 @@ function Nav({
         </div>
         <li
           className="flex-1 flex justify-center"
-          onClick={() => setStatus("signup")}
+          onClick={() => setStatus("register")}
         >
           <NavLink
             to="register"
