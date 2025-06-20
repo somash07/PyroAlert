@@ -2,14 +2,8 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 // import errorHandler from "./middlewares/errorHandler";
-import {
-//   adoptionPostRoute,
-//   donationRoute,
-//   profileRoute,
-//   rescuePostRoute,
-  userRoute,
-//   volunteerPostRoute,
-} from "./routes/user.route";
+import { userRoute } from "./routes/user.route";
+import {clientRequestRoute } from "./routes/client-request.route"
 import { authenticateWithJwt } from "./middlewares/auth.middleware";
 
 const app = express();
@@ -22,7 +16,7 @@ app.use(express.static("public"));
 
 // public routes
 app.use("/api/v1/user", userRoute);
-// app.use("/api/v1/donate", donationRoute);
+app.use("/api/v1/client-request", clientRequestRoute);
 
 // routes that needs authentication
 // app.use(authenticateWithJwt);

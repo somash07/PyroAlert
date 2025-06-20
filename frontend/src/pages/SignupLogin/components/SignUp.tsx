@@ -3,13 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema } from "../../../validators/signupValidators";
 import type { Schema } from "../../../validators/signupValidators";
 import { useNavigate } from "react-router";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import API from "@/config/baseUrl";
 import ErrorText from "@/components/ErrorText";
-import useGeolocation from "@/hooks/UseGeoLocation";
 import { useState } from "react";
 import { MapPin } from "lucide-react";
+import useGeolocation from "@/hooks/useGeolocation";
 
 function Signup() {
   const [disable, setDisable] = useState<boolean>(false);
@@ -48,7 +48,9 @@ function Signup() {
       toast.success("Location access granted");
       setDisable(false);
     } else {
-      toast.error("Failed to get location. Please allow location access.");
+      toast.error(
+        "Location permission denied. Enable it in your browser settings and try again."
+      );
       setDisable(true);
       setLocation({ lat: 0, lng: 0 });
     }
@@ -83,7 +85,9 @@ function Signup() {
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col h-[100%] p-5 gap-5 justify-center overflow-y-scroll max-h-screen"
       >
-        <h2 className="text-center font-bold font-bitter">JOIN AS A FIRESTATION</h2>
+        <h2 className="text-center font-bold font-bitter">
+          JOIN AS A FIRESTATION
+        </h2>
         <input
           {...register("username")}
           placeholder="Enter Fire Station name "
@@ -127,7 +131,9 @@ function Signup() {
 
         <div className="flex w-full justify-between">
           {location.lat === 0 ? (
-            <span className="text-sm">Please allow location to continue : </span>
+            <span className="text-sm">
+              Please allow location to continue :{" "}
+            </span>
           ) : (
             <span className="text-green-500">
               {" "}

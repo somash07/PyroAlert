@@ -1,107 +1,121 @@
+import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { MapPin, Building, User } from "lucide-react";
+import { Link } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import API from "@/config/baseUrl";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { clientRequestSchema } from "@/validators/clientRequestValidators";
+import type { Schema } from "@/validators/clientRequestValidators";
+import {DotLoader} from "react-spinners"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-// import { useToast } from "@/hooks/use-toast"
-import { MapPin, Building, User } from "lucide-react"
-import { Link } from "react-router-dom"
+interface FormData {
+  name: string;
+  phone: string;
+  email: string;
+  buildingType: string;
+  address: string;
+  location: {
+    lat: number;
+    lng: number;
+  };
+  additionalInfo?: string;
+}
 
 export default function ClientRequestPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    buildingType: "",
-    address: "",
-    coordinates: { lat: 0, lng: 0 },
-    additionalInfo: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [locationPermission, setLocationPermission] = useState<"granted" | "denied" | "prompt">("prompt")
-//   const { toast } = useToast()
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+    reset,
+  } = useForm<Schema>({
+    resolver: zodResolver(clientRequestSchema),
+    mode: "all",
+    defaultValues: {
+      name: "",
+      phone: "",
+      email: "",
+      buildingType: "",
+      address: "",
+      location: { lat: 0, lng: 0 },
+      additionalInfo: "",
+    },
+  });
+
+  const [disable, setDisable] = useState<boolean>(false);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [locationPermission, setLocationPermission] = useState<
+    "granted" | "denied" | "prompt"
+  >("prompt");
+  // const { toast } = useToast();
 
   useEffect(() => {
-    // Check geolocation permission
     if (navigator.geolocation) {
       navigator.permissions.query({ name: "geolocation" }).then((result) => {
-        setLocationPermission(result.state)
-      })
+        setLocationPermission(result.state);
+      });
     }
-  }, [])
+  }, []);
+
+  const location = watch("location");
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setFormData((prev) => ({
-            ...prev,
-            coordinates: {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            },
-          }))
-        //   toast({
-        //     title: "Location captured",
-        //     description: "Your current location has been recorded.",
-        //   })
+          setValue("location", {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setDisable(false);
+          toast.success("Your location has been successfully captured.");
         },
         (error) => {
-        //   toast({
-        //     title: "Location error",
-        //     description: "Unable to get your location. Please enter address manually.",
-        //     variant: "destructive",
-        //   })
-        },
-      )
+          toast.error(
+            "Location permission denied. Enable it in your browser settings and try again."
+          );
+          setDisable(true);
+        }
+      );
     }
-  }
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
+  const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true);
     try {
-      const response = await fetch("/api/client/request", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
+      console.log(data);
+      const response = await API.post("/api/v1/client-request", data);
 
-      if (response.ok) {
-        toast({
-          title: "Request submitted successfully!",
-          description: "We'll review your request and contact you soon.",
-        })
-        setFormData({
-          name: "",
-          phone: "",
-          email: "",
-          buildingType: "",
-          address: "",
-          coordinates: { lat: 0, lng: 0 },
-          additionalInfo: "",
-        })
-      } else {
-        throw new Error("Failed to submit request")
-      }
+      console.log(response);
+      toast.success("Submitted successfully");
+      reset();
     } catch (error) {
-      toast({
-        title: "Submission failed",
-        description: "Please try again later.",
-        variant: "destructive",
-      })
+      toast.error("Submission failed");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen w-screen bg-gray-50 py-8">
@@ -113,11 +127,12 @@ export default function ClientRequestPage() {
               <span>Fire Detection System Installation Request</span>
             </CardTitle>
             <CardDescription>
-              Fill out this form to request installation of our AI-powered fire detection system
+              Fill out this form to request installation of our AI-powered fire
+              detection system
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Personal Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
@@ -130,20 +145,31 @@ export default function ClientRequestPage() {
                     <Label htmlFor="name">Full Name *</Label>
                     <Input
                       id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                      required
+                      {...register("name", { required: "Name is required" })}
+                      aria-invalid={errors.name ? "true" : "false"}
                     />
+                    {errors.name && (
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.name.message}
+                      </p>
+                    )}
                   </div>
+
                   <div>
                     <Label htmlFor="phone">Phone Number *</Label>
                     <Input
                       id="phone"
                       type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-                      required
+                      {...register("phone", {
+                        required: "Phone number is required",
+                      })}
+                      aria-invalid={errors.phone ? "true" : "false"}
                     />
+                    {errors.phone && (
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.phone.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -152,10 +178,20 @@ export default function ClientRequestPage() {
                   <Input
                     id="email"
                     type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                    required
+                    {...register("email", {
+                      required: "Email is required",
+                      pattern: {
+                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                        message: "Invalid email address",
+                      },
+                    })}
+                    aria-invalid={errors.email ? "true" : "false"}
                   />
+                  {errors.email && (
+                    <p className="text-red-600 text-sm mt-1">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -168,7 +204,12 @@ export default function ClientRequestPage() {
 
                 <div>
                   <Label htmlFor="buildingType">Building Type *</Label>
-                  <Select onValueChange={(value) => setFormData((prev) => ({ ...prev, buildingType: value }))}>
+                  <Select
+                    onValueChange={(value) =>
+                      setValue("buildingType", value, { shouldValidate: true })
+                    }
+                    defaultValue=""
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select building type" />
                     </SelectTrigger>
@@ -182,6 +223,11 @@ export default function ClientRequestPage() {
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
+                  {errors.buildingType && (
+                    <p className="text-red-600 text-sm mt-1">
+                      {errors.buildingType.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -196,11 +242,17 @@ export default function ClientRequestPage() {
                   <Label htmlFor="address">Address *</Label>
                   <Textarea
                     id="address"
-                    value={formData.address}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
+                    {...register("address", {
+                      required: "Address is required",
+                    })}
+                    aria-invalid={errors.address ? "true" : "false"}
                     placeholder="Enter complete address"
-                    required
                   />
+                  {errors.address && (
+                    <p className="text-red-600 text-sm mt-1">
+                      {errors.address.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center space-x-4">
@@ -213,9 +265,14 @@ export default function ClientRequestPage() {
                     <MapPin className="h-4 w-4" />
                     <span>Use Current Location</span>
                   </Button>
-                  {formData.coordinates.lat !== 0 && (
+                  {location.lat !== 0 ? (
                     <span className="text-sm text-green-600">
-                      Location captured: {formData.coordinates.lat.toFixed(6)}, {formData.coordinates.lng.toFixed(6)}
+                      Location captured: {location.lat.toFixed(6)},{" "}
+                      {location.lng.toFixed(6)}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-red-500">
+                      * Location access needed.Please enable it in browser setting.
                     </span>
                   )}
                 </div>
@@ -226,34 +283,27 @@ export default function ClientRequestPage() {
                 <Label htmlFor="additionalInfo">Additional Information</Label>
                 <Textarea
                   id="additionalInfo"
-                  value={formData.additionalInfo}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, additionalInfo: e.target.value }))}
+                  {...register("additionalInfo")}
                   placeholder="Any specific requirements or additional details..."
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit Installation Request"}
+              <Button
+                type="submit"
+                className="w-full bg-orange-400 hover:bg-orange-300"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <DotLoader size={15} color="#ffffff"/>
+                ) : (
+                  "Submit Installation Request"
+                )}
               </Button>
             </form>
           </CardContent>
         </Card>
 
-        {/* Status Check */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Check Request Status</CardTitle>
-            <CardDescription>Already submitted a request? Check its status here.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/client/status">
-              <Button variant="outline" className="w-full">
-                Check Status
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
       </div>
     </div>
-  )
+  );
 }
