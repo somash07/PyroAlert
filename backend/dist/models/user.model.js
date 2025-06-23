@@ -27,9 +27,13 @@ exports.User = exports.UserType = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 var UserType;
 (function (UserType) {
-    UserType["FireDepartment"] = "fireDepartment";
-    UserType["Admin"] = "admin";
+    UserType["Admin"] = "Admin";
+    UserType["Firedepartment"] = "Firedepartment";
 })(UserType || (exports.UserType = UserType = {}));
+const locationSchema = new mongoose_1.Schema({
+    lng: Number,
+    lat: Number,
+});
 const userSchema = new mongoose_1.Schema({
     username: {
         type: String,
@@ -45,6 +49,7 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         required: [true, "password is required"],
     },
+    location: locationSchema,
     type: {
         type: String,
         enum: UserType,

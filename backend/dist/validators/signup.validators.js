@@ -20,5 +20,6 @@ exports.signupSchema = zod_1.z.object({
         .refine((data) => {
         return /[!@#$%^&*(),.?":{}|<>]/.test(data);
     }, { message: "Your password must contain at least one special character" }),
-    type: zod_1.z.enum(["Firedepartment", "Admin"]),
+    type: zod_1.z.enum(["Firedepartment", "Admin"]).optional(),
+    location: zod_1.z.object({})
 });

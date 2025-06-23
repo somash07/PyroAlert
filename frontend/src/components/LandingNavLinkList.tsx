@@ -14,7 +14,7 @@ const NavLinkList = () => {
           Home
         </NavLink>
         <NavLink
-          to="/about"
+          to="/about-us"
           className={({ isActive }) =>
             isActive ? "border-b-4" : "hover:text-stone-500"
           }

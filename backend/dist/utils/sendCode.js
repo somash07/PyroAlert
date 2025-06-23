@@ -33,7 +33,7 @@ const sendCode = (email, code, _mailType) => {
     const main = () => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const info = yield transporter.sendMail({
-                from: '"PyroAlert" <sahaara201@gmail.com>',
+                from: '"PyroAlert" <Pyroalert201@gmail.com>',
                 to: email,
                 subject: _mailType === mailType_1.maileType.RESET
                     ? `Your Reset Otp Code`
@@ -72,7 +72,7 @@ const sendCode = (email, code, _mailType) => {
         </div>
         <p style="margin-bottom: 20px;">If you did not request this, simply ignore this email.</p>
         <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-        <p style="color: #777; margin-bottom: 0;">Best regards,<br />Sahaara</p>
+        <p style="color: #777; margin-bottom: 0;">Best regards,<br />Pyroalert</p>
         <p style="color: #777; font-size: 14px; margin-top: 5px;">(This is an automated message. Please do not reply.)</p>
     </div>
         `

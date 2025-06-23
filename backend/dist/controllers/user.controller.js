@@ -29,13 +29,23 @@ const options = {
     httpOnly: true,
     secure: true,
 };
+// abcdefg
 const signUpHandler = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { username, email, password, type } = req.body;
+    let { username, email, password, type, location } = req.body;
+    const { lat, lng } = location;
+    // Default to "Firedepartment" if not provided
+    if (!type) {
+        type = user_model_1.UserType.Firedepartment;
+    }
     const validationResult = signup_validators_1.signupSchema.safeParse({
         username,
         email,
         password,
         type,
+        location: {
+            lat,
+            lng,
+        },
     });
     if (!validationResult.success) {
         const errors = validationResult.error.errors.map((error) => error.message);
@@ -45,7 +55,7 @@ const signUpHandler = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 
             errors: errors,
         });
     }
-    if (!username || !email || !password || !type) {
+    if (!username || !email || !password || !type || !lat || !lng) {
         return res.status(400).json({
             success: false,
             message: "Some field is missing here",
@@ -73,7 +83,11 @@ const signUpHandler = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 
             existingUser.password = hashedPassword;
             existingUser.verifyCode = verifyCode;
             existingUser.verifyCodeExpiry = new Date(Date.now() + 3600000);
-            yield existingUser.save();
+            (existingUser.location = {
+                lat: lat,
+                lng: lng,
+            }),
+                yield existingUser.save();
             yield (0, sendCode_1.sendCode)(email, verifyCode, mailType_1.maileType.VERIFY_OTP);
             return res.status(200).json({
                 success: true,
@@ -87,10 +101,14 @@ const signUpHandler = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 
             username,
             email,
             password: hashedPassword,
-            type,
+            type: type || user_model_1.UserType.Firedepartment,
             verifyCode,
             isVerified: false,
             verifyCodeExpiry,
+            location: {
+                lat: lat,
+                lng: lng,
+            },
         });
         yield newUser.save();
         yield (0, sendCode_1.sendCode)(email, verifyCode, mailType_1.maileType.VERIFY_OTP);
