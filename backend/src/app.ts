@@ -18,6 +18,7 @@ app.use(express.static("public"));
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/client-request", clientRequestRoute);
 
+
 // routes that needs authentication
 // app.use(authenticateWithJwt);
 // app.use("/api/v1/profile", profileRoute);

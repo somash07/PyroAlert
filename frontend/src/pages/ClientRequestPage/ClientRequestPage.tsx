@@ -255,7 +255,7 @@ export default function ClientRequestPage() {
                   )}
                 </div>
 
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 flex-col md:flex-row">
                   <Button
                     type="button"
                     variant="outline"
@@ -263,7 +263,7 @@ export default function ClientRequestPage() {
                     className="flex items-center space-x-2"
                   >
                     <MapPin className="h-4 w-4" />
-                    <span>Use Current Location</span>
+                    <span>Use Current Location (location of building)</span>
                   </Button>
                   {location.lat !== 0 ? (
                     <span className="text-sm text-green-600">
