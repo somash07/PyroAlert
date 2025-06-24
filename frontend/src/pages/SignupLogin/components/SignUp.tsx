@@ -83,11 +83,16 @@ function Signup() {
     <>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col h-[100%] p-5 gap-5 justify-center overflow-y-scroll max-h-screen"
+        className="flex flex-col h-auto p-9 space-y-4 justify-center "
       >
-        <h2 className="text-center font-bold font-bitter">
-          JOIN AS A FIRESTATION
-        </h2>
+        <div className="space-y-3 flex flex-col items-center">
+          <h2 className="text-center font-semibold text-orange-400 text-2xl font-bitter">
+            Register as a FireStation
+          </h2>
+          <p className="font-roboto text-sm font-light">
+            Register your fire station with our emergency response network
+          </p>
+        </div>
         <input
           {...register("username")}
           placeholder="Enter Fire Station name "
@@ -129,19 +134,19 @@ function Signup() {
           <ErrorText message={errors.confirmPassword.message as string} />
         )}
 
-        <div className="flex w-full justify-between">
+        <div className="flex w-full justify-between gap-3 bg-gray-100 p-3 rounded-md">
           {location.lat === 0 ? (
             <span className="text-sm">
-              Please allow location to continue :{" "}
+              To continue, please turn on location and ensure you're at the fire station
             </span>
           ) : (
             <span className="text-green-500">
               {" "}
-              your location : {location.lat} & {location.lng}
+              Fire Station's location successfully captured!
             </span>
           )}
           <Button
-            className="cursor-pointer"
+            className="cursor-pointer hover:bg-stone-100"
             variant="outline"
             onClick={handleAllowLocation}
             disabled={isLoading}
@@ -154,11 +159,21 @@ function Signup() {
         <Button
           type="submit"
           disabled={disable}
-          className="bg-orange-400 cursor-pointer"
+          className="bg-orange-400 cursor-pointer hover:bg-orange-500"
         >
           Signup
         </Button>
       </form>
+
+      <div className="text-center text-sm text-gray-600">
+          {"Already have an account? "}
+          <button
+            className="text-orange-400 hover:text-orange-500 font-medium cursor-pointer"
+            onClick={() => navigate("/joinus/login")}
+          >
+            Login here
+          </button>
+        </div>
     </>
   );
 }

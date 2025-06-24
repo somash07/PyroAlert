@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Building, User } from "lucide-react";
-import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import API from "@/config/baseUrl";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -122,8 +121,7 @@ export default function ClientRequestPage() {
       <div className="container mx-auto px-4 max-w-2xl mt-20">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Building className="h-6 w-6" />
+            <CardTitle className="flex items-center space-x-2 text-xl justify-center">
               <span>Fire Detection System Installation Request</span>
             </CardTitle>
             <CardDescription>
@@ -141,7 +139,7 @@ export default function ClientRequestPage() {
                 </h3>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="name">Full Name *</Label>
                     <Input
                       id="name"
@@ -155,7 +153,7 @@ export default function ClientRequestPage() {
                     )}
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number *</Label>
                     <Input
                       id="phone"
@@ -173,7 +171,7 @@ export default function ClientRequestPage() {
                   </div>
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="email">Email Address *</Label>
                   <Input
                     id="email"
@@ -202,7 +200,7 @@ export default function ClientRequestPage() {
                   <span>Building Information</span>
                 </h3>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="buildingType">Building Type *</Label>
                   <Select
                     onValueChange={(value) =>
@@ -238,7 +236,7 @@ export default function ClientRequestPage() {
                   <span>Location Information</span>
                 </h3>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="address">Address *</Label>
                   <Textarea
                     id="address"
@@ -267,8 +265,7 @@ export default function ClientRequestPage() {
                   </Button>
                   {location.lat !== 0 ? (
                     <span className="text-sm text-green-600">
-                      Location captured: {location.lat.toFixed(6)},{" "}
-                      {location.lng.toFixed(6)}
+                      Location captured!
                     </span>
                   ) : (
                     <span className="text-sm text-red-500">
@@ -279,7 +276,7 @@ export default function ClientRequestPage() {
               </div>
 
               {/* Additional Information */}
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="additionalInfo">Additional Information</Label>
                 <Textarea
                   id="additionalInfo"
@@ -290,7 +287,7 @@ export default function ClientRequestPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-orange-400 hover:bg-orange-300"
+                className="w-full bg-orange-400 hover:bg-orange-500"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

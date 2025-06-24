@@ -6,7 +6,7 @@ import NavLinkList from "./LandingNavLinkList";
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="w-screen bg-stone-900 text-white box-border h-20 flex items-center justify-between px-8 shadow-md fixed top-0 z-50">
+    <div className="w-screen bg-white text-black box-border h-20 flex items-center justify-between px-8 shadow-md fixed top-0 z-50">
       {/* logo */}
         <NavLink to="/" className=" flex gap-6 items-center cursor-pointer">
           <img src="/logo.png" alt="" className="h-[130px] " />

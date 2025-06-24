@@ -33,13 +33,13 @@ const NavLinkList = () => {
 
       <div className=" flex gap-3 ">
         <NavLink to="/joinus">
-          <Button className="cursor-pointer border-1 hover:bg-stone-700">
+          <Button className="cursor-pointer border-1  bg-orange-400 hover:bg-orange-500 transition-all duration-300 transform hover:-translate-y-1">
             Firedepartment Registration
           </Button>
         </NavLink>
 
         <NavLink to="/client-request">
-          <Button className="cursor-pointer bg-orange-400 hover:bg-orange-300">
+          <Button className="cursor-pointer bg-orange-400 hover:bg-orange-500 transition-all duration-300 transform hover:-translate-y-1">
             Become a client
           </Button>
         </NavLink>

@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { userRoute } from "./routes/user.route";
 import {clientRequestRoute } from "./routes/client-request.route"
 import { authenticateWithJwt } from "./middlewares/auth.middleware";
+import { inquiryFormRoute } from "./routes";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.static("public"));
 // public routes
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/client-request", clientRequestRoute);
+app.use("/api/v1/inquiry-form", inquiryFormRoute)
 
 
 // routes that needs authentication

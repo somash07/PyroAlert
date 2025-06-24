@@ -138,6 +138,7 @@ const signInHandler = asyncHandler(
     req: Request,
     res: Response<ApiResponse>
   ): Promise<Response<ApiResponse>> => {
+
     const { identifier, password } = req.body;
 
     const signInValidationResult = signinSchema.safeParse({
@@ -236,6 +237,7 @@ const codeVerifier = asyncHandler(
     }
 
     const user = await User.findOne({ username });
+    console.log(user)
 
     if (!user) {
       return res.status(404).json({
@@ -271,7 +273,7 @@ const codeVerifier = asyncHandler(
 
 const getVerificationCode = asyncHandler(
   async (req: Request, res: Response) => {
-    const { email } = req.body;
+    const { email} = req.body;
 
     if (!email) {
       return res.status(400).json({
@@ -291,7 +293,7 @@ const getVerificationCode = asyncHandler(
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     user.verifyCode = verifyCode;
-    user.verifyCodeExpiry = new Date(Date.now() + 3600000);
+    user.verifyCodeExpiry = new Date(Date.now() + 60000);
 
     await user.save();
 
@@ -305,8 +307,8 @@ const getVerificationCode = asyncHandler(
 );
 
 const resetPassword = asyncHandler(async (req: Request, res: Response) => {
-  const { username, verifyCode, newPassword } = req.body;
-  if (!username || !verifyCode || !newPassword) {
+  const { email, code, newPassword } = req.body;
+  if (!email || !code || !newPassword) {
     return res.status(400).json({
       success: false,
       message: "All fields are required",
@@ -314,7 +316,7 @@ const resetPassword = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const user = await User.findOne({
-    username,
+    email,
   });
 
   if (!user) {
@@ -324,7 +326,7 @@ const resetPassword = asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
-  const isVerifyCodeCorrect = user.verifyCode === verifyCode;
+  const isVerifyCodeCorrect = user.verifyCode === code;
   const isVerifyCodeNotExpired = new Date(user.verifyCodeExpiry) > new Date();
 
   if (isVerifyCodeCorrect && isVerifyCodeNotExpired) {

@@ -1,10 +1,18 @@
+import ImageAnimationVertical from "@/components/animations/ImageAnimationVertical";
+import API from "@/config/baseUrl";
+import { inquiryFormSchema } from "@/validators/inquiry-form.validators";
+import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import toast from "react-hot-toast";
+import { motion } from "motion/react";
+import { Button } from "@/components/ui/button";
+
 
 interface FormData {
   name: string;
   email: string;
-  phone: string;
+  phone?: string;
   message: string;
 }
 
@@ -15,32 +23,33 @@ interface ContactInfo {
 }
 
 const Contact: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    email: "",
-    phone: "",
-    message: "",
-  });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormData>(
+    {
+      resolver: zodResolver(inquiryFormSchema),
+          mode: "all",
+          defaultValues: {
+            name: "",
+            phone: "",
+            email: "",
+            message: ""
+          },
+    }
+  );
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ): void => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    try {
+      const response = await API.post("/api/v1/inquiry-form", data);
+      toast.success("Your inquiry has been submitted successfully. Please wait for response ");
+    } catch (err) {
+      console.log(err)
+    }
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    alert("Thank you for your message! We'll get back to you soon.");
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      message: "",
-    });
+    reset();
   };
 
   const contactInfo: ContactInfo[] = [
@@ -71,17 +80,25 @@ const Contact: React.FC = () => {
   ];
 
   return (
-    <div className="w-screen">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+      className="w-screen"
+    >
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-orange-700 to-orange-600 text-white py-20 lg:py-32 text-center">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
-            Contact Us
-          </h1>
-          <p className="text-lg sm:text-xl opacity-90">
-            Get in touch with our fire safety experts
-          </p>
-        </div>
+      <section className=" text-white bg-orange-400 py-20 lg:py-32 text-center">
+        <ImageAnimationVertical>
+          <div className=" sm:px-6 lg:px-8 mt-20">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 font-bitter">
+              Contact Us
+            </h1>
+            <p className="text-lg sm:text-xl opacity-90 font-roboto">
+              Get in touch with out team
+            </p>
+          </div>
+        </ImageAnimationVertical>
       </section>
 
       {/* Contact Content */}
@@ -126,7 +143,7 @@ const Contact: React.FC = () => {
               <h2 className="text-3xl font-bold mb-8 text-gray-800">
                 Send us a Message
               </h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-1 gap-6">
                   <div>
                     <label
@@ -136,14 +153,15 @@ const Contact: React.FC = () => {
                       Name *
                     </label>
                     <input
-                      type="text"
                       id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors"
+                      {...register("name", { required: "Name is required" })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg  focus:outline-none transition-colors"
                     />
+                    {errors.name && (
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.name.message}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label
@@ -153,14 +171,16 @@ const Contact: React.FC = () => {
                       Email *
                     </label>
                     <input
-                      type="email"
                       id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors"
+                      type="email"
+                      {...register("email", { required: "Email is required" })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none transition-colors"
                     />
+                    {errors.email && (
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.email.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -173,13 +193,16 @@ const Contact: React.FC = () => {
                       Phone
                     </label>
                     <input
-                      type="tel"
                       id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors"
+                      type="tel"
+                      {...register("phone")}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg  focus:outline-none transition-colors"
                     />
+                    {errors.phone && (
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors.phone.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -192,27 +215,31 @@ const Contact: React.FC = () => {
                   </label>
                   <textarea
                     id="message"
-                    name="message"
                     rows={5}
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors resize-vertical"
-                  ></textarea>
+                    {...register("message", {
+                      required: "Message is required",
+                    })}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg  focus:outline-none transition-colors resize-vertical"
+                  />
+                  {errors.message && (
+                    <p className="text-red-600 text-sm mt-1">
+                      {errors.message.message}
+                    </p>
+                  )}
                 </div>
 
-                <button
+                <Button
                   type="submit"
-                  className="w-full px-8 py-4 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-all duration-300 transform hover:-translate-y-1"
+                  className="w-full px-8 py-4 bg-orange-400 text-white font-semibold rounded-lg hover:bg-orange-500 transition-all duration-300 transform hover:-translate-y-1"
                 >
                   Send Message
-                </button>
+                </Button>
               </form>
             </div>
           </div>
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 };
 

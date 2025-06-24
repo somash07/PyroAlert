@@ -12,9 +12,17 @@ export interface TokenPropsUser {
   isVerified: boolean;
 }
 
-function generateAccessToken(payload: JwtPayload): string {
+function generateAccessToken(user: TokenPropsUser): string {
   const secret = process.env.ACCESS_TOKEN_SECRET;
   if (!secret) throw new Error("ACCESS_TOKEN_SECRET must be defined");
+
+  const payload: JwtPayload = {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    type: user.type,
+    isVerified: user.isVerified,
+  };
 
   const options: SignOptions = {
     expiresIn: "1d",
@@ -23,9 +31,13 @@ function generateAccessToken(payload: JwtPayload): string {
   return jwt.sign(payload, secret, options);
 }
 
-function generateRefreshToken(payload: JwtPayload): string {
+function generateRefreshToken(user: TokenPropsUser): string {
   const secret = process.env.REFRESH_TOKEN_SECRET;
   if (!secret) throw new Error("REFRESH_TOKEN_SECRET must be defined");
+
+  const payload: JwtPayload = {
+    _id: user._id,
+  };
 
   const options: SignOptions = {
     expiresIn: "7d",
@@ -37,10 +49,22 @@ function generateRefreshToken(payload: JwtPayload): string {
 const generateAccessAndRefreshTokens = async (
   user: TokenPropsUser
 ): Promise<{ accessToken: string; refreshToken: string }> => {
-  const userFound = await User.findById({ _id: user._id });
+  const userFound = await User.findById(user._id).lean(); // ✅ ensures it's a plain object
 
-  const accessToken = generateAccessToken(user);
-  const refreshToken = generateRefreshToken(user);
+  if (!userFound) {
+    throw new Error("User not found");
+  }
+
+  const cleanUser: TokenPropsUser = {
+    _id: userFound._id.toString(),
+    username: userFound.username,
+    email: userFound.email,
+    type: userFound.type,
+    isVerified: userFound.isVerified,
+  };
+
+  const accessToken = generateAccessToken(cleanUser);
+  const refreshToken = generateRefreshToken(cleanUser);
 
   return { accessToken, refreshToken };
 };
@@ -48,5 +72,5 @@ const generateAccessAndRefreshTokens = async (
 export {
   generateAccessToken,
   generateRefreshToken,
-  // generateAccessAndRefreshTokens,
+  generateAccessAndRefreshTokens,
 };

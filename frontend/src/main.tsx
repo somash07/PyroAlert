@@ -10,26 +10,26 @@ import SignupLogin from "./pages/SignupLogin/SignupLogin.tsx";
 import Login from "./pages/SignupLogin/components/Login.tsx";
 import SignUp from "./pages/SignupLogin/components/SignUp.tsx";
 import LandingPageLayout from "./layouts/LandingPageLayout/LandingPageLayout.tsx";
-import OtpVerification from "./pages/SignupLogin/components/OtpVerification.tsx";
 import ProtectedOTP from "./pages/SignupLogin/components/ProtectedOTP.tsx";
 import ClientRequestPage from "./pages/ClientRequestPage/ClientRequestPage.tsx";
 
-import About from "./pages/About.tsx";
+import About from "./pages/About/About.tsx";
 import Home from "./pages/Home.tsx";
 import Contact from "./pages/Contact.tsx";
+import ResetPassword from "./pages/SignupLogin/components/ResetPassword.tsx";
+import EmailVerification from "./pages/SignupLogin/components/EmailVerification.tsx";
+import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import Dashboard from "./pages/Dashboard/Dashboard.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <LandingPageLayout />,
     children: [
+      { index: true, element: <Home /> },
       {
         path: "/about-us",
         element: <About />,
-      },
-      {
-        path: "/",
-        element: <Home />,
       },
       {
         path: "/contact",
@@ -40,12 +40,16 @@ const router = createBrowserRouter([
         element: <ClientRequestPage />,
       },
       {
+        path: "/reset-password",
+        element: <ResetPassword />,
+      },
+      {
         path: "joinus",
         element: <SignupLogin />,
         children: [
           {
             index: true,
-            element: <Navigate to="register" replace />,
+            element: <Navigate to="login" replace />,
           },
           {
             path: "login",
@@ -59,7 +63,7 @@ const router = createBrowserRouter([
             path: "otp-verification/:username",
             element: (
               <ProtectedOTP>
-                <OtpVerification />
+                <EmailVerification />
               </ProtectedOTP>
             ),
           },
@@ -67,9 +71,15 @@ const router = createBrowserRouter([
       },
     ],
   },
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
+  },
 ]);
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
     <RouterProvider router={router} />
-  </StrictMode>
 );
