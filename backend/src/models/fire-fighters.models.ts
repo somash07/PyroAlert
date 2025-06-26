@@ -16,6 +16,7 @@ export interface FirefighterDocument extends Document {
   name: string
   email: string
   contact: string
+  address: string
   status: "available" | "busy" 
   specializations?: string[]
   yearsOfExperience?: number
@@ -55,6 +56,12 @@ const FirefighterSchema = new Schema<FirefighterDocument>(
       required: [true, "Name is required"],
       trim: true,
       maxlength: [50, "Name cannot exceed 50 characters"],
+    },
+     address: {
+      type: String,
+      required: [true, "Address is required"],
+      trim: true,
+      maxlength: [50, "Address cannot exceed 50 characters"],
     },
     email: {
       type: String,

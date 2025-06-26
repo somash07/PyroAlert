@@ -5,15 +5,19 @@ import type { RootState, AppDispatch } from "../../store/store";
 import {
   addFirefighter,
   deleteFirefighter,
-  fetchFirefighters,
+  fetchFirefightersByDepartment,
+  updateFirefighter,
 } from "../../store/slices/firefighterSlice";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
+import type { Firefighter } from "@/types";
+import { PencilIcon } from "lucide-react";
 
 interface FirefighterFormInputs {
   name: string;
   email: string;
   contact: string;
+  address: string;
   departmentId: string;
 }
 
@@ -22,21 +26,14 @@ const AddFirefighter: React.FC = () => {
 
   const storedUser = localStorage.getItem("userInfo");
   const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
-  
-    useEffect(
-      function fetchFirefirefighters() {
-        if (storedDepartmentId) dispatch(fetchFirefighters(storedDepartmentId));
-      },
-      [dispatch, storedDepartmentId]
-    );
-
 
   const { firefighters } = useSelector(
     (state: RootState) => state.firefighters
   );
   const [showForm, setShowForm] = useState(false);
-
-  
+  const [editingFirefighter, setEditingFirefighter] =
+    useState<Firefighter | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   const {
     register,
@@ -49,6 +46,7 @@ const AddFirefighter: React.FC = () => {
       name: "",
       email: "",
       contact: "",
+      address: "",
       departmentId: storedDepartmentId,
     },
   });
@@ -60,11 +58,12 @@ const AddFirefighter: React.FC = () => {
 
   const onSubmit = async (data: FirefighterFormInputs) => {
     await dispatch(addFirefighter({ ...data, status: "available" as const }));
-    await dispatch(fetchFirefighters(storedDepartmentId)); 
+    await dispatch(fetchFirefightersByDepartment(storedDepartmentId));
     reset({
       name: "",
       email: "",
       contact: "",
+      address: "",
       departmentId: storedDepartmentId,
     });
     setShowForm(false);
@@ -73,8 +72,33 @@ const AddFirefighter: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this firefighter?")) {
       await dispatch(deleteFirefighter(id));
-      await dispatch(fetchFirefighters(storedDepartmentId)); // refresh list after deleting
+      await dispatch(fetchFirefightersByDepartment(storedDepartmentId)); // refresh list after deleting
     }
+  };
+
+  const handleEdit = (firefighter: Firefighter) => {
+    setEditingFirefighter(firefighter);
+    setValue("name", firefighter.name);
+    setValue("email", firefighter.email);
+    setValue("contact", firefighter.contact);
+    setValue("departmentId", firefighter.departmentId);
+    setShowEditForm(true);
+  };
+
+  const handleEditSubmit = async (data: FirefighterFormInputs) => {
+    if (editingFirefighter) {
+      dispatch(updateFirefighter({ _id: editingFirefighter._id, ...data }));
+      reset();
+      setEditingFirefighter(null);
+      setShowEditForm(false);
+    }
+    await dispatch(fetchFirefightersByDepartment(storedDepartmentId));
+  };
+
+  const handleCancelEdit = () => {
+    setEditingFirefighter(null);
+    setShowEditForm(false);
+    reset();
   };
 
   return (
@@ -99,6 +123,7 @@ const AddFirefighter: React.FC = () => {
                   Full Name
                 </label>
                 <input
+                  placeholder="Enter full name"
                   autoComplete="off"
                   {...register("name", { required: "Name is required" })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
@@ -115,6 +140,7 @@ const AddFirefighter: React.FC = () => {
                   Email
                 </label>
                 <input
+                placeholder="Enter email address"
                   autoComplete="off"
                   type="email"
                   {...register("email", {
@@ -140,6 +166,7 @@ const AddFirefighter: React.FC = () => {
                   Contact Number
                 </label>
                 <input
+                placeholder="Enter phone number"
                   autoComplete="off"
                   type="tel"
                   {...register("contact", { required: "Contact is required" })}
@@ -151,6 +178,25 @@ const AddFirefighter: React.FC = () => {
                   </p>
                 )}
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Address
+                </label>
+                <input
+                placeholder="Enter your address"
+                  autoComplete="off"
+                  type="text"
+                  {...register("address", { required: "Address is required" })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                />
+                {errors.address && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.address.message}
+                  </p>
+                )}
+              </div>
+
               {/* Empty div for spacing */}
               <div></div>
             </div>
@@ -171,6 +217,69 @@ const AddFirefighter: React.FC = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {showEditForm && editingFirefighter && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Edit Firefighter</h3>
+              <form
+                onSubmit={handleSubmit(handleEditSubmit)}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name
+                    </label>
+                    <input
+                      {...register("name", { required: true })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      {...register("email", { required: true })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Contact Number
+                    </label>
+                    <input
+                      type="tel"
+                      {...register("contact", { required: true })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Update Firefighter
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="w-full sm:w-auto px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
 
@@ -196,40 +305,48 @@ const AddFirefighter: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {Array.isArray(firefighters) && firefighters.map((firefighter) => (
-              <tr key={firefighter._id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {firefighter.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {firefighter.email}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {firefighter.contact}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      firefighter.status === "available"
-                        ? "bg-green-100 text-green-800"
-                        : firefighter.status === "busy"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {firefighter.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <button
-                    onClick={() => handleDelete(firefighter._id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {Array.isArray(firefighters) &&
+              firefighters.map((firefighter) => (
+                <tr key={firefighter._id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {firefighter.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {firefighter.email}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {firefighter.contact}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        firefighter.status === "available"
+                          ? "bg-green-100 text-green-800"
+                          : firefighter.status === "busy"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {firefighter.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 lex space-x-2">
+                    <button
+                      onClick={() => handleEdit(firefighter)}
+                      className="text-blue-600 hover:text-blue-900 p-1"
+                      title="Edit Firefighter"
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(firefighter._id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

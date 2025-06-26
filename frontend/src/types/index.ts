@@ -22,6 +22,7 @@ export interface Firefighter {
   _id: string
   name: string
   email: string
+  address: string
   departmentId: string
   contact: string
   status: "available" | "busy" | "offline"

@@ -1,24 +1,21 @@
-import type React from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
-import { UserIcon, PhoneIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
-import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { fetchFirefighters } from "@/store/slices/firefighterSlice";
+import { UserIcon, PhoneIcon, EnvelopeIcon, MapIcon } from "@heroicons/react/24/outline";
+import { fetchFirefightersByDepartment } from "@/store/slices/firefighterSlice";
 
 const FirefighterInfo: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const storedUser = localStorage.getItem("userInfo");
-  const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
-
-  useEffect(
-    function fetchFirefirefighters() {
-      if (storedDepartmentId) dispatch(fetchFirefighters(storedDepartmentId));
-    },
-    [dispatch, storedDepartmentId]
-  );
   const { firefighters, loading } = useSelector(
     (state: RootState) => state.firefighters
   );
+  const storedUser = localStorage.getItem("userInfo");
+  const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
+
+  // Fetch firefighters when departmentId is valid
+  useEffect(() => {
+    dispatch(fetchFirefightersByDepartment(storedDepartmentId));
+  }, [storedDepartmentId, dispatch]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -39,6 +36,14 @@ const FirefighterInfo: React.FC = () => {
         {[...Array(5)].map((_, i) => (
           <div key={i} className="h-24 bg-gray-300 rounded"></div>
         ))}
+      </div>
+    );
+  }
+
+  if (!storedDepartmentId) {
+    return (
+      <div className="text-center text-red-500">
+        Department ID missing. Please log in again.
       </div>
     );
   }
@@ -71,7 +76,7 @@ const FirefighterInfo: React.FC = () => {
             </span>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="mt-4 grid grid-cols-3 gap-4">
             <div className="flex items-center">
               <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-2" />
               <span className="text-sm text-gray-600">{firefighter.email}</span>
@@ -80,6 +85,12 @@ const FirefighterInfo: React.FC = () => {
               <PhoneIcon className="h-5 w-5 text-gray-400 mr-2" />
               <span className="text-sm text-gray-600">
                 {firefighter.contact}
+              </span>
+            </div>
+            <div className="flex items-center">
+              <MapIcon className="h-5 w-5 text-gray-400 mr-2" />
+              <span className="text-sm text-gray-600">
+                {firefighter.address}
               </span>
             </div>
           </div>

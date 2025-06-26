@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/store/store";
 import { resetAll } from "@/store/actions/resetAction";
+import { logout } from "@/store/slices/authSlice";
 
 interface FireStationSidebarProps {
   activeView: string;
@@ -47,6 +48,7 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
       localStorage.removeItem("userInfo");
       localStorage.removeItem("token");
       dispatch(resetAll())
+      dispatch(logout())
       toast.success("Logged out successfully!");
       navigate("/joinus/login");
     } catch (err) {

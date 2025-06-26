@@ -16,6 +16,9 @@ import { useState } from "react";
 import API from "@/config/baseUrl";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/store/store";
+import { setUser } from "@/store/slices/authSlice";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Email or Username is required"),
@@ -35,6 +38,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const dispatch = useDispatch<AppDispatch>();
+
   const navigate = useNavigate();
   const {
     register,
@@ -42,10 +47,10 @@ export default function Login() {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-     defaultValues: {
-    identifier: "",
-    password: "",
-  },
+    defaultValues: {
+      identifier: "",
+      password: "",
+    },
   });
 
   const onSubmit = async (data: LoginFormData) => {
@@ -53,11 +58,12 @@ export default function Login() {
     try {
       const response = await API.post("/api/v1/user/sign-in", data);
       const { accessToken, user } = response.data.data;
-      
+
       // Store tokens if needed
 
       localStorage.setItem("token", accessToken as string);
       localStorage.setItem("userInfo", JSON.stringify(user));
+      dispatch(setUser(user));
 
       toast.success("Login successful");
       navigate("/dashboard");

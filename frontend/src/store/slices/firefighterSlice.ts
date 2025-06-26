@@ -16,10 +16,10 @@ const initialState: FirefightersState = {
 };
 
 
-export const fetchFirefighters = createAsyncThunk(
-  "firefighters/fetchFirefighters",
-  async (id? : string ) => {
-    const response = await firefighterService.getFirefighters(id);
+export const fetchFirefightersByDepartment = createAsyncThunk(
+  "firefighters/getFirefightersByDepartment",
+  async (id : string ) => {
+    const response = await firefighterService.getFirefightersByDepartment(id);
     return response.data.data;
   }
 );
@@ -31,6 +31,16 @@ export const addFirefighter = createAsyncThunk(
     return response.data;
   }
 );
+
+export const updateFirefighter = createAsyncThunk(
+  "firefighters/updateFirefighter",
+  async (firefighter: { _id: string; name: string; email: string; contact: string; departmentId: string }) => {
+    const response = await firefighterService.updateFirefighter(firefighter._id, firefighter)
+    return response.data
+  },
+)
+
+
 
 export const deleteFirefighter = createAsyncThunk(
   "firefighters/deleteFirefighter",
@@ -49,15 +59,15 @@ const firefightersSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Fetch Firefighters
-      .addCase(fetchFirefighters.pending, (state) => {
+      .addCase(fetchFirefightersByDepartment.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchFirefighters.fulfilled, (state, action) => {
+      .addCase(fetchFirefightersByDepartment.fulfilled, (state, action) => {
         state.firefighters = action.payload ?? [];
         state.loading = false;
       })
-      .addCase(fetchFirefighters.rejected, (state, action) => {
+      .addCase(fetchFirefightersByDepartment.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message ?? "Failed to fetch firefighters";
       })
