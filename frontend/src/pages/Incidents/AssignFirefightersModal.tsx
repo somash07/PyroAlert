@@ -1,0 +1,109 @@
+"use client"
+
+import type React from "react"
+import { useState } from "react"
+import type { FireIncident, Firefighter } from "../../types"
+import { XMarkIcon } from "@heroicons/react/24/outline"
+
+interface AssignFirefightersModalProps {
+  incident: FireIncident
+  firefighters: Firefighter[]
+  onAssign: (incidentId: string, firefighterIds: string[]) => void
+  onClose: () => void
+}
+
+const AssignFirefightersModal: React.FC<AssignFirefightersModalProps> = ({
+  incident,
+  firefighters,
+  onAssign,
+  onClose,
+}) => {
+  const [selectedFirefighters, setSelectedFirefighters] = useState<string[]>([])
+
+  const availableFirefighters = firefighters.filter((f) => f.status === "available")
+
+  const handleToggleFirefighter = (firefighterId: string) => {
+    setSelectedFirefighters((prev) =>
+      prev.includes(firefighterId) ? prev.filter((id) => id !== firefighterId) : [...prev, firefighterId],
+    )
+  }
+
+  const handleAssign = () => {
+    if (selectedFirefighters.length > 0) {
+      onAssign(incident.id, selectedFirefighters)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b">
+          <h2 className="text-lg sm:text-xl font-semibold">Assign Firefighters</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-1">
+            <XMarkIcon className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="mb-4">
+            <p className="text-sm text-gray-600">Incident: {incident.location.address}</p>
+            <p className="text-sm text-gray-600">Distance: {incident.distance} km</p>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-base sm:text-lg font-medium mb-3">Available Firefighters</h3>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {availableFirefighters.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No firefighters available at the moment</p>
+                </div>
+              ) : (
+                availableFirefighters.map((firefighter) => (
+                  <label
+                    key={firefighter.id}
+                    className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedFirefighters.includes(firefighter.id)}
+                      onChange={() => handleToggleFirefighter(firefighter.id)}
+                      className="mr-3 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm sm:text-base truncate">{firefighter.name}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">{firefighter.contact}</p>
+                    </div>
+                    <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded flex-shrink-0">
+                      {firefighter.status}
+                    </span>
+                  </label>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 p-4 sm:p-6 border-t">
+          <button
+            onClick={onClose}
+            className="w-full sm:w-auto px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleAssign}
+            disabled={selectedFirefighters.length === 0}
+            className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Assign ({selectedFirefighters.length})
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default AssignFirefightersModal

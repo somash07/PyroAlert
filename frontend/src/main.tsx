@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import {
@@ -22,6 +22,7 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import FireStationDashboardLayout from "./layouts/FireStationDashboardLayout/FireStationDashboardLayout.tsx";
 import { Provider } from "react-redux";
 import { store } from "./store/store.ts";
+import { Toaster } from "react-hot-toast";
 
 const router = createBrowserRouter([
   {
@@ -86,6 +87,7 @@ const router = createBrowserRouter([
 ]);
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
+    <Toaster position="bottom-right" />
     <RouterProvider router={router} />
   </Provider>
 );

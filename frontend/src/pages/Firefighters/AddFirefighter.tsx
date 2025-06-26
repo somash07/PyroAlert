@@ -11,7 +11,9 @@ import {
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import type { Firefighter } from "@/types";
-import { PencilIcon } from "lucide-react";
+import { PencilIcon, RefreshCcw } from "lucide-react";
+import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button";
 
 interface FirefighterFormInputs {
   name: string;
@@ -59,6 +61,8 @@ const AddFirefighter: React.FC = () => {
   const onSubmit = async (data: FirefighterFormInputs) => {
     await dispatch(addFirefighter({ ...data, status: "available" as const }));
     await dispatch(fetchFirefightersByDepartment(storedDepartmentId));
+    toast.success("Firefighter added successfully!");
+
     reset({
       name: "",
       email: "",
@@ -73,6 +77,7 @@ const AddFirefighter: React.FC = () => {
     if (window.confirm("Are you sure you want to delete this firefighter?")) {
       await dispatch(deleteFirefighter(id));
       await dispatch(fetchFirefightersByDepartment(storedDepartmentId)); // refresh list after deleting
+      toast.success("Firefighter deleted successfully!");
     }
   };
 
@@ -82,6 +87,7 @@ const AddFirefighter: React.FC = () => {
     setValue("email", firefighter.email);
     setValue("contact", firefighter.contact);
     setValue("departmentId", firefighter.departmentId);
+    setValue("address", firefighter.address);
     setShowEditForm(true);
   };
 
@@ -89,6 +95,7 @@ const AddFirefighter: React.FC = () => {
     if (editingFirefighter) {
       dispatch(updateFirefighter({ _id: editingFirefighter._id, ...data }));
       reset();
+      toast.success("Firefighter updated successfully! ");
       setEditingFirefighter(null);
       setShowEditForm(false);
     }
@@ -103,7 +110,7 @@ const AddFirefighter: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 flex gap-5">
         <button
           onClick={() => setShowForm(!showForm)}
           className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
@@ -111,6 +118,16 @@ const AddFirefighter: React.FC = () => {
           <PlusIcon className="h-5 w-5 mr-2" />
           Add New Firefighter
         </button>
+        <Button
+          className="bg-green-600 hover:bg-green-700"
+          onClick={async () => {
+            await dispatch(fetchFirefightersByDepartment(storedDepartmentId));
+            toast.success("Refreshed successfully");
+          }}
+        >
+          <RefreshCcw />
+          Refresh
+        </Button>
       </div>
 
       {showForm && (
@@ -140,7 +157,7 @@ const AddFirefighter: React.FC = () => {
                   Email
                 </label>
                 <input
-                placeholder="Enter email address"
+                  placeholder="Enter email address"
                   autoComplete="off"
                   type="email"
                   {...register("email", {
@@ -166,7 +183,7 @@ const AddFirefighter: React.FC = () => {
                   Contact Number
                 </label>
                 <input
-                placeholder="Enter phone number"
+                  placeholder="Enter phone number"
                   autoComplete="off"
                   type="tel"
                   {...register("contact", { required: "Contact is required" })}
@@ -184,7 +201,7 @@ const AddFirefighter: React.FC = () => {
                   Address
                 </label>
                 <input
-                placeholder="Enter your address"
+                  placeholder="Enter your address"
                   autoComplete="off"
                   type="text"
                   {...register("address", { required: "Address is required" })}
@@ -235,8 +252,9 @@ const AddFirefighter: React.FC = () => {
                       Full Name
                     </label>
                     <input
+                      autoComplete="off"
                       {...register("name", { required: true })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                     />
                   </div>
                   <div>
@@ -244,9 +262,10 @@ const AddFirefighter: React.FC = () => {
                       Email
                     </label>
                     <input
+                      autoComplete="off"
                       type="email"
                       {...register("email", { required: true })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                     />
                   </div>
                 </div>
@@ -256,9 +275,24 @@ const AddFirefighter: React.FC = () => {
                       Contact Number
                     </label>
                     <input
+                      autoComplete="off"
                       type="tel"
                       {...register("contact", { required: true })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Address
+                    </label>
+                    <input
+                      autoComplete="off"
+                      type="tel"
+                      {...register("address", { required: true })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                     />
                   </div>
                 </div>

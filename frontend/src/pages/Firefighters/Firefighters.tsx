@@ -1,9 +1,8 @@
-"use client";
 
 import type React from "react";
 import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../../store/store";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../../store/store";
 import FirefighterInfo from "./FirefighterInfo";
 import AddFirefighter from "./AddFirefighter";
 import { fetchFirefightersByDepartment } from "@/store/slices/firefighterSlice";
