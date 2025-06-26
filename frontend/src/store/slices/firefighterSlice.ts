@@ -32,6 +32,16 @@ export const addFirefighter = createAsyncThunk(
   }
 );
 
+export const updateFirefighter = createAsyncThunk(
+  "firefighters/updateFirefighter",
+  async (firefighter: { _id: string; name: string; email: string; contact: string; departmentId: string }) => {
+    const response = await firefighterService.updateFirefighter(firefighter._id, firefighter)
+    return response.data
+  },
+)
+
+
+
 export const deleteFirefighter = createAsyncThunk(
   "firefighters/deleteFirefighter",
   async (id: string) => {

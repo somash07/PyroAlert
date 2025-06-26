@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
-import { UserIcon, PhoneIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
+import { UserIcon, PhoneIcon, EnvelopeIcon, MapIcon } from "@heroicons/react/24/outline";
 import { fetchFirefightersByDepartment } from "@/store/slices/firefighterSlice";
 
 const FirefighterInfo: React.FC = () => {
@@ -9,13 +9,13 @@ const FirefighterInfo: React.FC = () => {
   const { firefighters, loading } = useSelector(
     (state: RootState) => state.firefighters
   );
-  const user = useSelector((state: RootState) => state.auth.user);
+  const storedUser = localStorage.getItem("userInfo");
+  const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
 
-  const departmentId = user?._id;
   // Fetch firefighters when departmentId is valid
   useEffect(() => {
-    dispatch(fetchFirefightersByDepartment(departmentId));
-  }, [departmentId, dispatch]);
+    dispatch(fetchFirefightersByDepartment(storedDepartmentId));
+  }, [storedDepartmentId, dispatch]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -40,7 +40,7 @@ const FirefighterInfo: React.FC = () => {
     );
   }
 
-  if (!departmentId) {
+  if (!storedDepartmentId) {
     return (
       <div className="text-center text-red-500">
         Department ID missing. Please log in again.
@@ -76,7 +76,7 @@ const FirefighterInfo: React.FC = () => {
             </span>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="mt-4 grid grid-cols-3 gap-4">
             <div className="flex items-center">
               <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-2" />
               <span className="text-sm text-gray-600">{firefighter.email}</span>
@@ -85,6 +85,12 @@ const FirefighterInfo: React.FC = () => {
               <PhoneIcon className="h-5 w-5 text-gray-400 mr-2" />
               <span className="text-sm text-gray-600">
                 {firefighter.contact}
+              </span>
+            </div>
+            <div className="flex items-center">
+              <MapIcon className="h-5 w-5 text-gray-400 mr-2" />
+              <span className="text-sm text-gray-600">
+                {firefighter.address}
               </span>
             </div>
           </div>

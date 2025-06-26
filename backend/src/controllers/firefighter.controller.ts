@@ -130,6 +130,7 @@ export const createFirefighter = async (
       name,
       email,
       contact,
+      address,
       departmentId,
       status = "available",
     } = req.body;
@@ -143,6 +144,7 @@ export const createFirefighter = async (
       name,
       email,
       contact,
+      address,
       departmentId,
       status,
     });

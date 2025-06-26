@@ -11,14 +11,15 @@ import { fetchFirefightersByDepartment } from "@/store/slices/firefighterSlice";
 const Firefighters: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [activeTab, setActiveTab] = useState<"info" | "manage">("info");
-  const user = useSelector((state: RootState) => state.auth.user);
-  const departmentId = user?._id;
+  
+  const storedUser = localStorage.getItem("userInfo");
+  const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
 
   useEffect(() => {
-    if (departmentId) {
-      dispatch(fetchFirefightersByDepartment(departmentId));
+    if (storedDepartmentId) {
+      dispatch(fetchFirefightersByDepartment(storedDepartmentId));
     }
-  }, [dispatch, departmentId]);
+  }, [dispatch, storedDepartmentId]);
 
   return (
     <div className="p-6 ">
