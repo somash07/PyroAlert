@@ -19,12 +19,12 @@ export interface FireIncident {
 }
 
 export interface Firefighter {
-  id: string
+  _id: string
   name: string
   email: string
+  departmentId: string
   contact: string
   status: "available" | "busy" | "offline"
-  department: string
   specializations?: string[]
   yearsOfExperience?: number
   certifications?: Array<{

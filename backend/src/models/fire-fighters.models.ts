@@ -17,14 +17,13 @@ export interface FirefighterDocument extends Document {
   email: string
   contact: string
   status: "available" | "busy" 
-  department: string
   specializations?: string[]
   yearsOfExperience?: number
   certifications?: Certification[]
   emergencyContact?: EmergencyContact
   isActive: boolean
   lastStatusUpdate: Date
-  departmentId: Types.ObjectId // linked to User model (Fire Station)
+  departmentId: Types.ObjectId
   createdAt: Date
   updatedAt: Date
 }
@@ -74,11 +73,6 @@ const FirefighterSchema = new Schema<FirefighterDocument>(
       enum: ["available", "busy"],
       default: "available",
     },
-    department: {
-      type: String,
-      required: [true, "Department is required"],
-      trim: true,
-    },
     specializations: [{ type: String, trim: true }],
     yearsOfExperience: { type: Number, min: [0, "Experience can't be negative"] },
     certifications: [CertificationSchema],
@@ -110,11 +104,5 @@ FirefighterSchema.pre("save", function (next) {
   next()
 })
 
-// Indexes for better query performance
-FirefighterSchema.index({ email: 1 })
-FirefighterSchema.index({ status: 1 })
-FirefighterSchema.index({ departmentId: 1 })
-FirefighterSchema.index({ user: 1 })
-FirefighterSchema.index({ isActive: 1 })
 
 export const Firefighter = mongoose.model<FirefighterDocument>("Firefighter", FirefighterSchema)

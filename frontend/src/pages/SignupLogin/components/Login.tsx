@@ -52,8 +52,8 @@ export default function Login() {
     setIsLoading(true);
     try {
       const response = await API.post("/api/v1/user/sign-in", data);
-      console.log(response.data);
       const { accessToken, user } = response.data.data;
+      
       // Store tokens if needed
 
       localStorage.setItem("token", accessToken as string);

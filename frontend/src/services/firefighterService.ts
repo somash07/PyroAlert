@@ -1,9 +1,13 @@
 import API from "@/config/baseUrl"
 import type { Firefighter } from "../types"
 
+
+
 export const firefighterService = {
-  getFirefighters: () => API.get<Firefighter[]>("/firefighters"),
-  addFirefighter: (firefighter: Omit<Firefighter, "id">) => API.post<Firefighter>("/firefighters", firefighter),
-  deleteFirefighter: (id: string) => API.delete(`/firefighters/${id}`),
-  updateFirefighter: (id: string, firefighter: Partial<Firefighter>) => API.patch(`/firefighters/${id}`, firefighter),
+  getFirefighters: (id? : string) => API.get(`/api/v1/firefighters?departmentId=${id}`),
+  addFirefighter: (firefighter: Omit<Firefighter, "_id">) => API.post<Firefighter>("/api/v1/firefighters", firefighter),
+  deleteFirefighter: (id: string) => API.delete(`/api/v1/firefighters/${id}`),
+  updateFirefighter: (id: string, firefighter: Partial<Firefighter>) => API.patch(`api/v1/firefighters/${id}`, firefighter),
 }
+
+

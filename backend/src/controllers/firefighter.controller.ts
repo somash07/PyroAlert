@@ -2,8 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import { Firefighter } from "../models/fire-fighters.models";
 import { AppError } from "../utils/AppError";
 import { validationResult } from "express-validator";
+
 import { Server as SocketIOServer } from "socket.io";
-import "express-serve-static-core";
+import mongoose from "mongoose";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -13,11 +14,67 @@ declare module "express-serve-static-core" {
 
 const validStatus = ["available", "busy", "offline"];
 
+export const getAllFirefighters = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {
+      status = "available",
+      departmentId,
+      limit = "50",
+      page = "1",
+    } = req.query;
 
+    // Validate status
+    if (typeof status !== "string" || !validStatus.includes(status)) {
+      return next(new AppError("Invalid status field", 400));
+    }
 
+    // Build filter object
+    const filter: Record<string, any> = {};
+    if (status) filter.status = status;
 
+    if (
+      typeof departmentId === "string" &&
+      mongoose.Types.ObjectId.isValid(departmentId)
+    ) {
+      filter.departmentId = departmentId;
+    }
+    // else: ignore bad
 
-export const getFirefighterById = async (req: Request, res: Response, next: NextFunction) => {
+    const numericLimit = parseInt(limit as string, 10) || 50;
+    const numericPage = parseInt(page as string, 10) || 1;
+
+    // Query
+    const firefighters = await Firefighter.find(filter)
+      .sort({ name: 1 })
+      .limit(numericLimit)
+      .skip((numericPage - 1) * numericLimit);
+
+    const total = await Firefighter.countDocuments(filter);
+
+    // Response
+    res.status(200).json({
+      success: true,
+      data: firefighters,
+      pagination: {
+        total,
+        currentPage: numericPage,
+        totalPages: Math.ceil(total / numericLimit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getFirefighterById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const firefighter = await Firefighter.findById(req.params.id);
 
@@ -34,55 +91,24 @@ export const getFirefighterById = async (req: Request, res: Response, next: Next
   }
 };
 
-
-export const getAllFirefighters = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { status = "available", departmentId, limit = "50", page = "1" } = req.query;
-
-    if (typeof status !== "string" || !validStatus.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid status field",
-      });
-    }
-
-    const filter: any = {};
-    if (status) filter.status = status;
-    if (departmentId) filter.department = departmentId;
-
-    const numericLimit = parseInt(limit as string) || 50;
-    const numericPage = parseInt(page as string) || 1;
-
-    const firefighters = await Firefighter.find(filter)
-      .sort({ name: 1 })
-      .limit(numericLimit)
-      .skip((numericPage - 1) * numericLimit);
-
-    const total = await Firefighter.countDocuments(filter);
-
-    res.json({
-      success: true,
-      data: firefighters,
-      pagination: {
-        current: numericPage,
-        pages: Math.ceil(total / numericLimit),
-        total,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-
-export const createFirefighter = async (req: Request, res: Response, next: NextFunction) => {
+export const createFirefighter = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return next(new AppError("Validation failed", 400, errors.array()));
     }
 
-    const { name, email, contact, department, status = "available" } = req.body;
+    const {
+      name,
+      email,
+      contact,
+      departmentId,
+      status = "available",
+    } = req.body;
 
     const existingFirefighter = await Firefighter.findOne({ email });
     if (existingFirefighter) {
@@ -93,7 +119,7 @@ export const createFirefighter = async (req: Request, res: Response, next: NextF
       name,
       email,
       contact,
-      department,
+      departmentId,
       status,
     });
 
@@ -111,7 +137,11 @@ export const createFirefighter = async (req: Request, res: Response, next: NextF
   }
 };
 
-export const updateFirefighter = async (req: Request, res: Response, next: NextFunction) => {
+export const updateFirefighter = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -152,7 +182,11 @@ export const updateFirefighter = async (req: Request, res: Response, next: NextF
   }
 };
 
-export const deleteFirefighter = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteFirefighter = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const firefighter = await Firefighter.findByIdAndDelete(req.params.id);
 
@@ -171,7 +205,11 @@ export const deleteFirefighter = async (req: Request, res: Response, next: NextF
   }
 };
 
-export const updateFirefighterStatus = async (req: Request, res: Response, next: NextFunction) => {
+export const updateFirefighterStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { status } = req.body;
 
@@ -201,9 +239,15 @@ export const updateFirefighterStatus = async (req: Request, res: Response, next:
   }
 };
 
-export const getAvailableFirefighters = async (req: Request, res: Response, next: NextFunction) => {
+export const getAvailableFirefighters = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const firefighters = await Firefighter.find({ status: "available" }).sort({ name: 1 });
+    const firefighters = await Firefighter.find({ status: "available" }).sort({
+      name: 1,
+    });
 
     res.json({
       success: true,
