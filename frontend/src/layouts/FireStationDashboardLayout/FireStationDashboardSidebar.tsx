@@ -1,4 +1,3 @@
-
 import type React from "react";
 import { useState } from "react";
 import {
@@ -15,6 +14,9 @@ import {
 import API from "@/config/baseUrl";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/store/store";
+import { resetAll } from "@/store/actions/resetAction";
 
 interface FireStationSidebarProps {
   activeView: string;
@@ -28,6 +30,7 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("userInfo")!);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: HomeIcon },
@@ -43,8 +46,9 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
       await API.post("/api/v1/user/logout");
       localStorage.removeItem("userInfo");
       localStorage.removeItem("token");
+      dispatch(resetAll())
       toast.success("Logged out successfully!");
-      navigate("/joinus/login")
+      navigate("/joinus/login");
     } catch (err) {
       toast.error("Cannot logout! Please try again.");
     }

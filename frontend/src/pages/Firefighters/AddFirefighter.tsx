@@ -5,47 +5,75 @@ import type { RootState, AppDispatch } from "../../store/store";
 import {
   addFirefighter,
   deleteFirefighter,
+  fetchFirefighters,
 } from "../../store/slices/firefighterSlice";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface FirefighterFormInputs {
   name: string;
   email: string;
   contact: string;
-  department: string;
+  departmentId: string;
 }
 
 const AddFirefighter: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+
+  const storedUser = localStorage.getItem("userInfo");
+  const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
+  
+    useEffect(
+      function fetchFirefirefighters() {
+        if (storedDepartmentId) dispatch(fetchFirefighters(storedDepartmentId));
+      },
+      [dispatch, storedDepartmentId]
+    );
+
+
   const { firefighters } = useSelector(
     (state: RootState) => state.firefighters
   );
   const [showForm, setShowForm] = useState(false);
 
+  
+
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<FirefighterFormInputs>({
     defaultValues: {
       name: "",
       email: "",
       contact: "",
-      department: "",
+      departmentId: storedDepartmentId,
     },
   });
+  useEffect(() => {
+    if (storedDepartmentId) {
+      setValue("departmentId", storedDepartmentId);
+    }
+  }, [setValue, storedDepartmentId]);
 
-  const onSubmit = (data: FirefighterFormInputs) => {
-    dispatch(addFirefighter({ ...data, status: "available" as const }));
-    reset();
+  const onSubmit = async (data: FirefighterFormInputs) => {
+    await dispatch(addFirefighter({ ...data, status: "available" as const }));
+    await dispatch(fetchFirefighters(storedDepartmentId)); 
+    reset({
+      name: "",
+      email: "",
+      contact: "",
+      departmentId: storedDepartmentId,
+    });
     setShowForm(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this firefighter?")) {
-      dispatch(deleteFirefighter(id));
+      await dispatch(deleteFirefighter(id));
+      await dispatch(fetchFirefighters(storedDepartmentId)); // refresh list after deleting
     }
   };
 
@@ -123,24 +151,8 @@ const AddFirefighter: React.FC = () => {
                   </p>
                 )}
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Department
-                </label>
-                <input
-                  autoComplete="off"
-                  {...register("department", {
-                    required: "Department is required",
-                  })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                />
-                {errors.department && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.department.message}
-                  </p>
-                )}
-              </div>
+              {/* Empty div for spacing */}
+              <div></div>
             </div>
 
             <div className="flex space-x-3">
@@ -184,8 +196,8 @@ const AddFirefighter: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {firefighters.map((firefighter) => (
-              <tr key={firefighter.id}>
+            {Array.isArray(firefighters) && firefighters.map((firefighter) => (
+              <tr key={firefighter._id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {firefighter.name}
                 </td>
@@ -210,7 +222,7 @@ const AddFirefighter: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <button
-                    onClick={() => handleDelete(firefighter.id)}
+                    onClick={() => handleDelete(firefighter._id)}
                     className="text-red-600 hover:text-red-900"
                   >
                     <TrashIcon className="h-5 w-5" />
