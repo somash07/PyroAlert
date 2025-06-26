@@ -29,7 +29,6 @@ const options = {
     httpOnly: true,
     secure: true,
 };
-// abcdefg
 const signUpHandler = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { username, email, password, type, location } = req.body;
     const { lat, lng } = location;
@@ -197,6 +196,7 @@ const codeVerifier = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 0
         });
     }
     const user = yield user_model_1.User.findOne({ username });
+    console.log(user);
     if (!user) {
         return res.status(404).json({
             success: false,
@@ -244,7 +244,7 @@ const getVerificationCode = (0, asyncHandeler_1.default)((req, res) => __awaiter
     }
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
     user.verifyCode = verifyCode;
-    user.verifyCodeExpiry = new Date(Date.now() + 3600000);
+    user.verifyCodeExpiry = new Date(Date.now() + 60000);
     yield user.save();
     yield (0, sendCode_1.sendCode)(email, verifyCode, mailType_1.maileType.RESET);
     res.status(200).json({
@@ -254,15 +254,15 @@ const getVerificationCode = (0, asyncHandeler_1.default)((req, res) => __awaiter
 }));
 exports.getVerificationCode = getVerificationCode;
 const resetPassword = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { username, verifyCode, newPassword } = req.body;
-    if (!username || !verifyCode || !newPassword) {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
         return res.status(400).json({
             success: false,
             message: "All fields are required",
         });
     }
     const user = yield user_model_1.User.findOne({
-        username,
+        email,
     });
     if (!user) {
         return res.status(404).json({
@@ -270,7 +270,7 @@ const resetPassword = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 
             message: "User with this username cannot be found",
         });
     }
-    const isVerifyCodeCorrect = user.verifyCode === verifyCode;
+    const isVerifyCodeCorrect = user.verifyCode === code;
     const isVerifyCodeNotExpired = new Date(user.verifyCodeExpiry) > new Date();
     if (isVerifyCodeCorrect && isVerifyCodeNotExpired) {
         const hashedPassword = yield bcryptjs_1.default.hash(newPassword, 10);

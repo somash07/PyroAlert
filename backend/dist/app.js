@@ -8,6 +8,8 @@ const cors_1 = __importDefault(require("cors"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 // import errorHandler from "./middlewares/errorHandler";
 const user_route_1 = require("./routes/user.route");
+const client_request_route_1 = require("./routes/client-request.route");
+const routes_1 = require("./routes");
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
@@ -15,7 +17,8 @@ app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.static("public"));
 // public routes
 app.use("/api/v1/user", user_route_1.userRoute);
-// app.use("/api/v1/donate", donationRoute);
+app.use("/api/v1/client-request", client_request_route_1.clientRequestRoute);
+app.use("/api/v1/inquiry-form", routes_1.inquiryFormRoute);
 // routes that needs authentication
 // app.use(authenticateWithJwt);
 // app.use("/api/v1/profile", profileRoute);

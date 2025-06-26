@@ -15,3 +15,5 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./user.route"), exports);
+__exportStar(require("./client-request.route"), exports);
+__exportStar(require("./inquiry-form.route"), exports);
