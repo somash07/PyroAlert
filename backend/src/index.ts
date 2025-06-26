@@ -1,4 +1,4 @@
-import app from "./app";
+import {app,server,io} from "./app";
 import dotenv from "dotenv";
 import dbConnect from "./db/dbConnect";
 
@@ -9,7 +9,7 @@ const port = process.env.PORT || 3001;
 const start = async () => {
   try {
     await dbConnect(process.env.MONGO_URI as string);
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`server running on http://localhost:${port}`);
     });
   } catch (error) {

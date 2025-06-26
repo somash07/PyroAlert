@@ -53,11 +53,11 @@ export default function Login() {
     try {
       const response = await API.post("/api/v1/user/sign-in", data);
       console.log(response.data);
-      const { accessToken, refreshToken } = response.data.data;
-
+      const { accessToken, user } = response.data.data;
       // Store tokens if needed
-      localStorage.setItem("accessToken", accessToken as string);
-      localStorage.setItem("refreshToken", refreshToken as string);
+
+      localStorage.setItem("token", accessToken as string);
+      localStorage.setItem("userInfo", JSON.stringify(user));
 
       toast.success("Login successful");
       navigate("/dashboard");

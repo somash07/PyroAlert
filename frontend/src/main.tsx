@@ -20,6 +20,9 @@ import ResetPassword from "./pages/SignupLogin/components/ResetPassword.tsx";
 import EmailVerification from "./pages/SignupLogin/components/EmailVerification.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Dashboard from "./pages/Dashboard/Dashboard.tsx";
+import FireStationDashboardLayout from "./layouts/FireStationDashboardLayout/FireStationDashboardLayout.tsx";
+import { Provider } from "react-redux";
+import { store } from "./store/store.ts";
 
 const router = createBrowserRouter([
   {
@@ -75,11 +78,13 @@ const router = createBrowserRouter([
     path: "/dashboard",
     element: (
       <ProtectedRoute>
-        <Dashboard />
+        <Provider store={store}>
+          <FireStationDashboardLayout />
+        </Provider>
       </ProtectedRoute>
     ),
   },
 ]);
 createRoot(document.getElementById("root")!).render(
-    <RouterProvider router={router} />
+  <RouterProvider router={router} />
 );

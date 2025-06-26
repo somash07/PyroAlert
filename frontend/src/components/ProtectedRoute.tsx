@@ -5,7 +5,7 @@ interface ProtectedProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedProps) => {
-  const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem("token");
 
   if (!token) {
     return <Navigate to="/joinus/login" replace />;
