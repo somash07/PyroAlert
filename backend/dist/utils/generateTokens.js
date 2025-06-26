@@ -12,25 +12,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateRefreshToken = exports.generateAccessToken = void 0;
+exports.generateAccessAndRefreshTokens = exports.generateRefreshToken = exports.generateAccessToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const user_model_1 = require("../models/user.model");
 dotenv_1.default.config();
-function generateAccessToken(payload) {
+function generateAccessToken(user) {
     const secret = process.env.ACCESS_TOKEN_SECRET;
     if (!secret)
         throw new Error("ACCESS_TOKEN_SECRET must be defined");
+    const payload = {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        type: user.type,
+        isVerified: user.isVerified,
+    };
     const options = {
         expiresIn: "1d",
     };
     return jsonwebtoken_1.default.sign(payload, secret, options);
 }
 exports.generateAccessToken = generateAccessToken;
-function generateRefreshToken(payload) {
+function generateRefreshToken(user) {
     const secret = process.env.REFRESH_TOKEN_SECRET;
     if (!secret)
         throw new Error("REFRESH_TOKEN_SECRET must be defined");
+    const payload = {
+        _id: user._id,
+    };
     const options = {
         expiresIn: "7d",
     };
@@ -38,8 +48,19 @@ function generateRefreshToken(payload) {
 }
 exports.generateRefreshToken = generateRefreshToken;
 const generateAccessAndRefreshTokens = (user) => __awaiter(void 0, void 0, void 0, function* () {
-    const userFound = yield user_model_1.User.findById({ _id: user._id });
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+    const userFound = yield user_model_1.User.findById(user._id).lean(); // ✅ ensures it's a plain object
+    if (!userFound) {
+        throw new Error("User not found");
+    }
+    const cleanUser = {
+        _id: userFound._id.toString(),
+        username: userFound.username,
+        email: userFound.email,
+        type: userFound.type,
+        isVerified: userFound.isVerified,
+    };
+    const accessToken = generateAccessToken(cleanUser);
+    const refreshToken = generateRefreshToken(cleanUser);
     return { accessToken, refreshToken };
 });
+exports.generateAccessAndRefreshTokens = generateAccessAndRefreshTokens;
