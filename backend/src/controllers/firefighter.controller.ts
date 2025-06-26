@@ -14,6 +14,31 @@ declare module "express-serve-static-core" {
 
 const validStatus = ["available", "busy", "offline"];
 
+
+export const getFirefightersByDepartment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { departmentId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(departmentId)) {
+    return next(new AppError("Invalid department ID", 400));
+  }
+
+  try {
+    const firefighters = await Firefighter.find({ departmentId }).sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      data: firefighters,
+      count: firefighters.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+
+}
 export const getAllFirefighters = async (
   req: Request,
   res: Response,
@@ -42,7 +67,6 @@ export const getAllFirefighters = async (
     ) {
       filter.departmentId = departmentId;
     }
-    // else: ignore bad
 
     const numericLimit = parseInt(limit as string, 10) || 50;
     const numericPage = parseInt(page as string, 10) || 1;

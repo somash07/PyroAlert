@@ -5,7 +5,7 @@ import type { RootState, AppDispatch } from "../../store/store";
 import {
   addFirefighter,
   deleteFirefighter,
-  fetchFirefighters,
+  fetchFirefightersByDepartment,
 } from "../../store/slices/firefighterSlice";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
@@ -20,14 +20,15 @@ interface FirefighterFormInputs {
 const AddFirefighter: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
-  const storedUser = localStorage.getItem("userInfo");
-  const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  const departmentId = user?._id;
   
     useEffect(
       function fetchFirefirefighters() {
-        if (storedDepartmentId) dispatch(fetchFirefighters(storedDepartmentId));
+        if (departmentId) dispatch(fetchFirefightersByDepartment(departmentId));
       },
-      [dispatch, storedDepartmentId]
+      [dispatch, departmentId]
     );
 
 
@@ -49,23 +50,23 @@ const AddFirefighter: React.FC = () => {
       name: "",
       email: "",
       contact: "",
-      departmentId: storedDepartmentId,
+      departmentId: departmentId,
     },
   });
   useEffect(() => {
-    if (storedDepartmentId) {
-      setValue("departmentId", storedDepartmentId);
+    if (departmentId) {
+      setValue("departmentId", departmentId);
     }
-  }, [setValue, storedDepartmentId]);
+  }, [setValue, departmentId]);
 
   const onSubmit = async (data: FirefighterFormInputs) => {
     await dispatch(addFirefighter({ ...data, status: "available" as const }));
-    await dispatch(fetchFirefighters(storedDepartmentId)); 
+    await dispatch(fetchFirefightersByDepartment(departmentId)); 
     reset({
       name: "",
       email: "",
       contact: "",
-      departmentId: storedDepartmentId,
+      departmentId: departmentId,
     });
     setShowForm(false);
   };
@@ -73,7 +74,7 @@ const AddFirefighter: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this firefighter?")) {
       await dispatch(deleteFirefighter(id));
-      await dispatch(fetchFirefighters(storedDepartmentId)); // refresh list after deleting
+      await dispatch(fetchFirefightersByDepartment(departmentId)); // refresh list after deleting
     }
   };
 

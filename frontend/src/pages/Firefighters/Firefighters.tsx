@@ -1,20 +1,24 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useDispatch } from "react-redux"
-import type { AppDispatch } from "../../store/store"
-import { fetchFirefighters } from "../../store/slices/firefighterSlice"
-import FirefighterInfo from "./FirefighterInfo"
-import AddFirefighter from "./AddFirefighter"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../store/store";
+import FirefighterInfo from "./FirefighterInfo";
+import AddFirefighter from "./AddFirefighter";
+import { fetchFirefightersByDepartment } from "@/store/slices/firefighterSlice";
 
 const Firefighters: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>()
-  const [activeTab, setActiveTab] = useState<"info" | "manage">("info")
+  const dispatch = useDispatch<AppDispatch>();
+  const [activeTab, setActiveTab] = useState<"info" | "manage">("info");
+  const user = useSelector((state: RootState) => state.auth.user);
+  const departmentId = user?._id;
 
   useEffect(() => {
-    dispatch(fetchFirefighters())
-  }, [dispatch])
+    if (departmentId) {
+      dispatch(fetchFirefightersByDepartment(departmentId));
+    }
+  }, [dispatch, departmentId]);
 
   return (
     <div className="p-6 ">
@@ -49,7 +53,7 @@ const Firefighters: React.FC = () => {
 
       {activeTab === "info" ? <FirefighterInfo /> : <AddFirefighter />}
     </div>
-  )
-}
+  );
+};
 
-export default Firefighters
+export default Firefighters;

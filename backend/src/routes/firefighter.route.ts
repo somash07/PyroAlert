@@ -7,6 +7,7 @@ import {
   getFirefighterById,
   updateFirefighter,
   updateFirefighterStatus,
+  getFirefightersByDepartment,
 } from "../controllers/firefighter.controller";
 import mongoose from "mongoose";
 import { AppError } from "../utils/AppError";
@@ -27,6 +28,9 @@ export const validateObjectId = (
 
 // Get all firefighters
 router.get("/", getAllFirefighters);
+
+//get firefighters according to department
+router.get("/:departmentId", getFirefightersByDepartment)
 
 // Get available firefighters
 router.get("/available", getAvailableFirefighters);
