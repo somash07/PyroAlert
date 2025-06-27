@@ -79,6 +79,7 @@ export interface FireDepartment {
 }
 
 export interface DashboardStats {
+  pendingIncidents: number
   activeIncidents: number
   availableFirefighters: number
   averageResponseTime: number
@@ -96,6 +97,60 @@ export interface User {
   isActive: boolean
   lastLogin?: string
 }
+
+
+export interface Incident {
+  _id: string;
+  location: string;
+  alert_type: "fire" | "smoke";
+  timestamp: string; // from Date
+  confidence: number;
+  temperature?: number;
+  source_device_id?: string;
+  status:
+    | "pending_response"
+    | "acknowledged"
+    | "assigned"
+    | "in_progress"
+    | "resolved"
+    | "rejected"
+    | "unassigned";
+  assigned_firefighters?: Array<{ name: string; _id: string }>;
+  assigned_department?: {
+    _id: string;
+    username: string;
+    address: string;
+  };
+  requested_department?: {
+    _id: string;
+    username: string;
+    address: string;
+  };
+  notes?: string;
+  additional_info?: Record<string, any>;
+  geo_location?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+  nearby_departments?: Array<{
+    department: {
+      _id: string;
+      name: string;
+    };
+    distance: number;
+  }>;
+  rejection_history?: Array<{
+    department: {
+      _id: string;
+      name: string;
+    };
+    reason: string;
+    timestamp: string;
+  }>;
+  response_time?: string;
+  action_required?: boolean;
+}
+
 
 // WebSocket event types
 export interface SocketEvents {

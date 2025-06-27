@@ -7,22 +7,27 @@ import socketio
 import json
 import socketio.client
 import os 
+import socket
 from ultralytics import YOLO
 import requests
 
 
 
+device_name = socket.gethostname()
+
 # -------------------- Configuration --------------------
+
 MODEL_PATH = "classifier/best.pt"
 CLASS_NAMES = ['other', 'fire', 'smoke']
 SOCKET_IO_SERVER_URL = "http://localhost:8080"  # WebSocket endpoint
 BACKEND_API_URL = "http://localhost:8080/api/v1/alert"
 DETECTION_CONFIDENCE_THRESHOLD = 0.1
 ALERT_CONFIDENCE_THRESHOLD = 0.6
-ALERT_COOLDOWN_SECONDS = 5
+ALERT_COOLDOWN_SECONDS = 21600
 CAMERA_INDEX = 0
 FRAME_SIZE = (640, 640)
 DEVICE_LOCATION = [27.67002163317301,85.44876327736884] #[lat,lng]
+DEVICE_NAME = device_name
 
 # -------------------- Load Model --------------------
 if not os.path.exists(MODEL_PATH):
@@ -71,7 +76,8 @@ def send_fire_alert(location, alert_type, confidence, coordinates):
         "additional_info": {
             "camera_id": "camera_001",
             "detection_method": "YOLOv8",
-            "alert_source": "automated_detection"
+            "alert_source": "automated_detection",
+            "device_name": DEVICE_NAME
         }
     }
     try:

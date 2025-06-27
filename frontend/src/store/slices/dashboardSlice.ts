@@ -16,6 +16,7 @@ interface DashboardState {
 
 const initialState: DashboardState = {
   stats: {
+    pendingIncidents: 0,
     activeIncidents: 0,
     availableFirefighters: 0,
     averageResponseTime: 0,

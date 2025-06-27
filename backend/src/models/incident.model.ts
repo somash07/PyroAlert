@@ -27,6 +27,8 @@ export interface IIncident extends Document {
     timestamp: Date
   }>
   response_time?: Date
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const IncidentSchema: Schema = new Schema(
@@ -65,6 +67,7 @@ const IncidentSchema: Schema = new Schema(
       },
     ],
     response_time: { type: Date },
+    
   },
   { timestamps: true },
 )

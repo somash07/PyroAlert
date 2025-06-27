@@ -259,7 +259,7 @@ export const respondToIncident = async (
         });
 
         await incident.save();
-        await incident.populate("requested_department", "name address contact");
+        await incident.populate("requested_department", "username address contact");
 
         broadcastMessage("INCIDENT_REASSIGNED", {
           ...incident.toObject(),
@@ -319,7 +319,7 @@ export const getPendingIncidents = async (req: Request, res: Response) => {
     }
 
     const incidents = await Incident.find(query)
-      .populate("requested_department", "name address contact")
+      .populate("requested_department", "username address contact")
       .sort({ timestamp: -1 });
 
     res.status(200).json(incidents);
@@ -338,7 +338,7 @@ export const getActiveIncidents = async (req: Request, res: Response) => {
   try {
     const activeStatuses = ["in_progress", "acknowledged", "assigned"];
     const incidents = await Incident.find({ status: { $in: activeStatuses } })
-      .populate("assigned_department", "name address contact")
+      .populate("assigned_department", "username address contact")
       .sort({ timestamp: -1 });
     res.status(200).json(incidents);
   } catch (error: any) {

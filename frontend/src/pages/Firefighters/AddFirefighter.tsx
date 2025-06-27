@@ -34,7 +34,7 @@ const AddFirefighter: React.FC = () => {
   );
   const [showForm, setShowForm] = useState(false);
   const [editingFirefighter, setEditingFirefighter] =
-    useState<Firefighter | null>(null);
+  useState<Firefighter | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
 
   const {

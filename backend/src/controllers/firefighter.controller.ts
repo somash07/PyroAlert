@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { Firefighter } from "../models/fire-fighters.models";
+import { Firefighter } from "../models/fire-fighters.model";
 import { AppError } from "../utils/AppError";
 import { validationResult } from "express-validator";
 

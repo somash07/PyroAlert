@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { Firefighter } from "../../types";
 import { firefighterService } from "../../services/firefighterService";
 import { resetAll } from "../actions/resetAction";
+import type { RootState } from "../store";
 
 interface FirefightersState {
   firefighters: Firefighter[];
@@ -105,5 +106,8 @@ const firefightersSlice = createSlice({
       .addCase(resetAll,()=>initialState)
   },
 });
+export const fetchFirefigthers = (state: RootState) =>
+  state.firefighters.firefighters;
 
 export default firefightersSlice.reducer;
+

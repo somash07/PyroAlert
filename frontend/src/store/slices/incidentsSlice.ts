@@ -3,130 +3,190 @@ import {
   createAsyncThunk,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-import type { FireIncident } from "../../types";
-import { resetAll } from "../actions/resetAction";
-// import { incidentService } from "../../services/incidentService"
+import type { RootState } from "../../store/store";
+import type { Incident } from "@/pages/Dashboard/Dashboard";
+import {
+  fetchActiveIncidents,
+  fetchPendingIncidents,
+  respondToIncident,
+  fetchAllIncidents,
+  createAlert,
+  updateIncident,
+} from "@/services/incidentService";
 
 interface IncidentsState {
-  incidents: FireIncident[];
+  active: Incident[];
+  pending: Incident[];
   loading: boolean;
   error: string | null;
   lastUpdated: string | null;
 }
 
 const initialState: IncidentsState = {
-  incidents: [],
+  active: [],
+  pending: [],
   loading: false,
   error: null,
   lastUpdated: null,
 };
 
-export const fetchIncidents = createAsyncThunk(
-  "incidents/fetchIncidents",
+export const loadPendingIncidents = createAsyncThunk(
+  "incidents/fetchPending",
   async () => {
-    //   const response = await incidentService.getIncidents()
-    //   return response.data
+    const res = await fetchPendingIncidents();
+    return res.data;
   }
 );
 
-export const acceptIncident = createAsyncThunk(
-  "incidents/acceptIncident",
-  async (incidentId: string) => {
-    //   const response = await incidentService.acceptIncident(incidentId)
-    //   return response.data
+export const loadActiveIncidents = createAsyncThunk(
+  "incidents/fetchActive",
+  async () => {
+    const res = await fetchActiveIncidents();
+    return res.data;
   }
 );
 
-export const assignFirefighters = createAsyncThunk(
-  "incidents/assignFirefighters",
-  async ({
-    incidentId,
-    firefighterIds,
-  }: {
-    incidentId: string;
-    firefighterIds: string[];
-  }) => {
-    // const response = await incidentService.assignFirefighters(incidentId, firefighterIds)
-    // return response.data
+export const loadAllIncidents = createAsyncThunk(
+  "incidents/fetchAll",
+  async () => {
+    const res = await fetchAllIncidents();
+    return res.data;
   }
 );
 
-const incidentsSlice = createSlice({
+export const createNewIncident = createAsyncThunk(
+  "incidents/create",
+  async (data: any, thunkAPI) => {
+    try {
+      const res = await createAlert(data);
+      return res.data;
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || err.message
+      );
+    }
+  }
+);
+
+export const updateIncidentStatus = createAsyncThunk(
+  "incidents/update",
+  async ({ id, data }: { id: string; data: any }, thunkAPI) => {
+    try {
+      const res = await updateIncident(id, data);
+      return res.data;
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || err.message
+      );
+    }
+  }
+);
+
+export const respondToIncidentThunk = createAsyncThunk(
+  "incidents/respond",
+  async (
+    {
+      id,
+      action,
+      notes,
+    }: { id: string; action: "accept" | "reject"; notes?: string },
+    thunkAPI
+  ) => {
+    try {
+      const res = await respondToIncident(id, action, notes);
+      return { id, result: res.data };
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || err.message
+      );
+    }
+  }
+);
+
+const incidentSlice = createSlice({
   name: "incidents",
   initialState,
   reducers: {
-    addIncident: (state, action: PayloadAction<FireIncident>) => {
-      // Check if incident already exists to avoid duplicates
-      const existingIndex = state.incidents.findIndex(
-        (incident) => incident.id === action.payload.id
-      );
-      if (existingIndex === -1) {
-        state.incidents.unshift(action.payload);
-        console.log("✅ New incident added to store:", action.payload.id);
-      } else {
-        console.log("⚠️ Incident already exists, skipping:", action.payload.id);
-      }
-      state.lastUpdated = new Date().toISOString();
-    },
-    updateIncident: (state, action: PayloadAction<FireIncident>) => {
-      const index = state.incidents.findIndex(
-        (incident) => incident.id === action.payload.id
-      );
-      if (index !== -1) {
-        state.incidents[index] = action.payload;
-        console.log("✅ Incident updated in store:", action.payload.id);
-      } else {
-        // If incident doesn't exist, add it
-        state.incidents.unshift(action.payload);
-        console.log("✅ New incident added via update:", action.payload.id);
-      }
-      state.lastUpdated = new Date().toISOString();
-    },
-    removeIncident: (state, action: PayloadAction<string>) => {
-      state.incidents = state.incidents.filter(
-        (incident) => incident.id !== action.payload
-      );
-      state.lastUpdated = new Date().toISOString();
-    },
-    clearError: (state) => {
-      state.error = null;
+    addNewIncident: (state, action: PayloadAction<Incident>) => {
+      state.pending.unshift(action.payload);
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchIncidents.pending, (state) => {
+      .addCase(loadPendingIncidents.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
-      .addCase(fetchIncidents.fulfilled, (state, action) => {
+      .addCase(loadPendingIncidents.fulfilled, (state, action) => {
         state.loading = false;
-        state.incidents = action.payload;
-        state.lastUpdated = new Date().toISOString();
+        state.pending = action.payload;
       })
-      .addCase(fetchIncidents.rejected, (state, action) => {
+      .addCase(loadPendingIncidents.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || "Failed to fetch incidents";
+        state.error =
+          action.error.message || "Failed to load pending incidents";
       })
-      .addCase(acceptIncident.fulfilled, (state, action) => {
-        const index = state.incidents.findIndex(
-          (incident) => incident.id === action.payload.id
+
+      .addCase(loadActiveIncidents.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(loadActiveIncidents.fulfilled, (state, action) => {
+        state.loading = false;
+        state.active = action.payload;
+      })
+      .addCase(loadActiveIncidents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to load active incidents";
+      })
+
+      .addCase(loadAllIncidents.fulfilled, (state, action) => {
+        state.active = action.payload.filter(
+          (i: Incident) => i.status !== "resolved"
         );
-        if (index !== -1) {
-          state.incidents[index] = action.payload;
+      })
+
+      .addCase(createNewIncident.fulfilled, (state, action) => {
+        const newIncident = action.payload;
+        if (newIncident.status === "pending_response") {
+          state.pending.unshift(newIncident);
+        } else {
+          state.active.unshift(newIncident);
         }
       })
-      .addCase(assignFirefighters.fulfilled, (state, action) => {
-        const index = state.incidents.findIndex(
-          (incident) => incident.id === action.payload.id
+
+      .addCase(updateIncidentStatus.fulfilled, (state, action) => {
+        const updated = action.payload;
+        const inPendingIndex = state.pending.findIndex(
+          (i) => i._id === updated._id
         );
-        if (index !== -1) {
-          state.incidents[index] = action.payload;
+        const inActiveIndex = state.active.findIndex(
+          (i) => i._id === updated._id
+        );
+
+        if (inPendingIndex !== -1) state.pending.splice(inPendingIndex, 1);
+
+        if (inActiveIndex !== -1) {
+          state.active[inActiveIndex] = updated;
+        } else {
+          state.active.unshift(updated);
         }
       })
-      .addCase(resetAll, () => initialState);
+
+      .addCase(respondToIncidentThunk.fulfilled, (state, action) => {
+        state.pending = state.pending.filter(
+          (i) => i._id !== action.payload.id
+        );
+        if (action.payload.result?.data?.status === "acknowledged") {
+          state.active.unshift(action.payload.result.data);
+        }
+      });
   },
 });
 
-export const { addIncident, updateIncident, removeIncident, clearError } =
-  incidentsSlice.actions;
-export default incidentsSlice.reducer;
+export const { addNewIncident } = incidentSlice.actions;
+export default incidentSlice.reducer;
+
+export const selectPendingIncidents = (state: RootState) =>
+  state.incidents.pending;
+
+export const selectActiveIncidents = (state: RootState) =>
+  state.incidents.active;
