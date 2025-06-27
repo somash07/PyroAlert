@@ -58,14 +58,14 @@ const Incidents: React.FC = () => {
     setSelectedIncident(null);
   };
 
-  const activeIncidents = incidents.filter(
+  const activeIncidents = incidents?.filter(
     (incident) =>
       incident.status === "pending" ||
       incident.status === "accepted" ||
       incident.status === "assigned"
   );
 
-  if (loading && incidents.length === 0) {
+  if (loading && incidents?.length === 0) {
     return (
       <div className="p-4 sm:p-6">
         <div className="animate-pulse space-y-4">
@@ -86,7 +86,7 @@ const Incidents: React.FC = () => {
         </h1>
         <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
           <div className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium text-center">
-            {activeIncidents.length} Active
+            {activeIncidents?.length} Active
           </div>
           {lastUpdated && (
             <div className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
@@ -97,7 +97,7 @@ const Incidents: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        {activeIncidents.length === 0 ? (
+        {activeIncidents?.length === 0 ? (
           <div className="text-center py-8 sm:py-12">
             <div className="text-4xl sm:text-6xl mb-4">🔥</div>
             <p className="text-gray-500 text-base sm:text-lg">
@@ -114,7 +114,7 @@ const Incidents: React.FC = () => {
           <>
             {/* Show newest incidents first */}
             {activeIncidents
-              .sort(
+              ?.sort(
                 (a, b) =>
                   new Date(b.timestamp).getTime() -
                   new Date(a.timestamp).getTime()

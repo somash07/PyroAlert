@@ -24,8 +24,8 @@ export interface ILocation{
 }
 
 const locationSchema: Schema<ILocation> = new Schema({
-  lng: Number,
   lat: Number,
+  lng: Number,
 });
 
 const userSchema: Schema<IUser> = new Schema(
