@@ -428,12 +428,12 @@ export const assignFirefighters = async (
       req.params.id,
       {
         status: "assigned",
-        assignedFirefighters: firefighterIds,
+        assigned_firefighters: firefighterIds,
         assignedAt: new Date(),
         // assignedBy: req.user?.id,
       },
       { new: true }
-    ).populate("assignedFirefighters");
+    ).populate("assigned_firefighters");
 
     if (!incident) {
       return next(new AppError("Incident not found", 404));
@@ -487,6 +487,7 @@ export const confirmAndDispatch = async (
     await Promise.all(
       incident.assigned_firefighters.map((firefighter: any) =>
         sendCode(firefighter.email, undefined, maileType.INCIDENT_ALERT, {
+          location: incident.geo_location?.coordinates,
           temperature: incident.temperature,
           coordinates: `${incident.geo_location?.coordinates[1]}, ${incident.geo_location?.coordinates[0]}`,
           incidentId: incident._id?.toString(),
@@ -530,7 +531,7 @@ export const completeIncident = async (
         // completedBy: req.user?.id,
       },
       { new: true }
-    ).populate("assignedFirefighters");
+    ).populate("assigned_Firefighters");
 
     if (!incident) {
       return next(new AppError("Incident not found", 404));

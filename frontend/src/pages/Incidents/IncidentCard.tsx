@@ -11,6 +11,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { MapPin, ThermometerIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { confirmAndSend } from "@/services/incidentService";
+import toast from "react-hot-toast";
+import { useState } from "react";
 
 interface IncidentCardProps {
   incident: Incident;
@@ -23,6 +26,7 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
   onAccept,
   onAssign,
 }) => {
+  const [isConfirmed, setIsConfirmed] = useState(false);
   const storedUser = localStorage.getItem("userInfo");
   const storedUserLat = storedUser ? JSON.parse(storedUser)?.lat : null;
   const storedUserLng = storedUser ? JSON.parse(storedUser)?.lng : null;
@@ -96,6 +100,12 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
   } catch (error) {
     console.error("Distance calculation failed:", error);
   }
+
+   function handelConfirm(incidentid: any){
+    confirmAndSend(incidentid)
+    setIsConfirmed(true)
+    toast.success("Notified firefighters")
+  } 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-red-500">
       {/* Header */}
@@ -248,9 +258,20 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
           <p className="text-xs sm:text-sm text-green-800 mb-2">
             Assigned to {incident.assigned_firefighters.length} firefighter(s)
           </p>
-          <button className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
+          <button onClick={()=>handelConfirm(incident._id)} className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
             Confirm & Send to Location
           </button>
+        </div>
+      )}
+
+      {isConfirmed &&(
+        <div className="bg-green-50 p-3 rounded-md">
+          <p className="text-xs sm:text-sm text-green-800 mb-2">
+            Firefighters dispatched
+          </p>
+          {/* <button onClick={()=>confirmAndSend(incident._id)} className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
+            Confirm & Send to Location
+          </button> */}
         </div>
       )}
     </div>

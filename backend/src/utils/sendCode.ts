@@ -9,7 +9,7 @@ const sendCode = (
   code?: string,
   _mailType?: string,
   details?: {
-    location?: string;
+    location?: [number, number];
     temperature?: number;
     coordinates?: string;
     incidentId?: string;
@@ -102,7 +102,16 @@ const sendCode = (
         <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
           <h2 style="color: #d32f2f;">🚨 Emergency Fire Alert</h2>
           <p><strong>Firefighter:</strong> ${details?.firefighterName}</p>
-          <p><strong>Location:</strong> ${details?.location}</p>
+          <p><strong>Location:</strong> ${
+            details?.location && Array.isArray(details.location)
+              ? `<p style="margin-top: 20px;">
+             <a href="https://www.google.com/maps?q=${details.location[1]},${details.location[0]}" 
+                style="display: inline-block; padding: 10px 20px; background-color: #d32f2f; color: #fff; text-decoration: none; border-radius: 5px;">
+               <button>Open in Google Maps</button>
+             </a>
+           </p>`
+              : ""
+          }</p>
           <p><strong>Temperature:</strong> ${details?.temperature}°C</p>
           <p><strong>Coordinates:</strong> ${details?.coordinates}</p>
           <p><strong>Incident ID:</strong> ${details?.incidentId}</p>

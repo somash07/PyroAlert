@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../../store/store";
 import {
-  loadAllIncidents,
   assignFirefighterss,
+  loadActiveIncidents,
   respondToIncidentThunk,
 } from "../../store/slices/incidentsSlice";
 import { fetchFirefightersByDepartment } from "../../store/slices/firefighterSlice";
@@ -17,6 +17,7 @@ const Incidents: React.FC = () => {
   const { pending, active, loading, lastUpdated } = useSelector(
     (state: RootState) => state.incidents
   );
+
   const { firefighters } = useSelector(
     (state: RootState) => state.firefighters
   );
@@ -26,18 +27,15 @@ const Incidents: React.FC = () => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const storedUser = localStorage.getItem("userInfo");
   const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
-  const storedUsername= storedUser ? JSON.parse(storedUser)?.username : "";
+  const storedUsername = storedUser ? JSON.parse(storedUser)?.username : "";
 
-
-
-  
   useEffect(() => {
     // Initial fetch
     dispatch(fetchFirefightersByDepartment(storedDepartmentId));
 
     // Auto-refresh every 15 seconds
     const refreshInterval = setInterval(() => {
-      dispatch(loadAllIncidents());
+      dispatch(fetchFirefightersByDepartment(storedDepartmentId));
     }, 15000);
 
     return () => {
@@ -46,7 +44,9 @@ const Incidents: React.FC = () => {
   }, [dispatch, storedDepartmentId]);
 
   const handleAcceptIncident = (incidentId: string, departmentId: string) => {
-    dispatch(respondToIncidentThunk({ id: incidentId, departmentId, action: "accept" }));
+    dispatch(
+      respondToIncidentThunk({ id: incidentId, departmentId, action: "accept" })
+    );
   };
 
   const handleAssignFirefighters = (
@@ -54,10 +54,10 @@ const Incidents: React.FC = () => {
     firefighterIds: string[]
   ) => {
     dispatch(assignFirefighterss({ incidentId, firefighterIds }));
+    dispatch(loadActiveIncidents());
     setShowAssignModal(false);
     setSelectedIncident(null);
   };
-
 
   if (loading && active.length === 0) {
     return (
@@ -117,7 +117,9 @@ const Incidents: React.FC = () => {
                 <IncidentCard
                   key={incident._id}
                   incident={incident}
-                  onAccept={()=>handleAcceptIncident(incident._id, storedDepartmentId)}
+                  onAccept={() =>
+                    handleAcceptIncident(incident._id, storedDepartmentId)
+                  }
                   onAssign={(incident) => {
                     setSelectedIncident(incident);
                     setShowAssignModal(true);

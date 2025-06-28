@@ -7,7 +7,7 @@ export const fetchActiveIncidents = () => API.get("/api/v1/alert/active");
 export const fetchPendingIncidents = () => API.get("/api/v1/alert/pending");
 
 export const assignFirefighters = (id: string, firefighterIds: string[]) =>
-  API.patch(`/incidents/${id}/assign`, { firefighterIds });
+  API.patch(`/api/v1/alert/${id}/assign`, { firefighterIds });
 
 export const fetchAllIncidents = () => API.get("/api/v1/alert/all");
 
@@ -24,4 +24,4 @@ export const respondToIncident = (
   notes?: string,
 ) => API.post(`/api/v1/alert/${id}/respond`, {departmentId, action ,notes });
 
-export const confirmAndSend = (id: string) => API.patch(`/incidents/${id}/confirm`);
+export const confirmAndSend = (id: string) => API.patch(`/api/v1/alert/${id}/confirm`);

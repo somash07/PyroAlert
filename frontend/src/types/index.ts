@@ -115,7 +115,8 @@ export interface Incident {
     | "in_progress"
     | "resolved"
     | "rejected"
-    | "unassigned";
+    | "unassigned"
+    | "dispatched";
   assigned_firefighters?: Array<{ name: string; _id: string }>;
   assigned_department?: {
     _id: string;
