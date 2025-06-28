@@ -100,6 +100,7 @@ export interface User {
 
 
 export interface Incident {
+  acceptedBy: string;
   _id: string;
   location: string;
   alert_type: "fire" | "smoke";

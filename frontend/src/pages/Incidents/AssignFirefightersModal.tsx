@@ -2,11 +2,11 @@
 
 import type React from "react"
 import { useState } from "react"
-import type { FireIncident, Firefighter } from "../../types"
+import type { Firefighter, Incident } from "../../types"
 import { XMarkIcon } from "@heroicons/react/24/outline"
 
 interface AssignFirefightersModalProps {
-  incident: FireIncident
+  incident: Incident
   firefighters: Firefighter[]
   onAssign: (incidentId: string, firefighterIds: string[]) => void
   onClose: () => void
