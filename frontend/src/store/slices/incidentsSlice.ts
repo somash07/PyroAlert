@@ -4,7 +4,6 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import type { RootState } from "../../store/store";
-import type { Incident } from "@/pages/Dashboard/Dashboard";
 import {
   fetchActiveIncidents,
   fetchPendingIncidents,
@@ -12,7 +11,10 @@ import {
   fetchAllIncidents,
   createAlert,
   updateIncident,
+  assignFirefighters,
+  fetchAssignedincidents,
 } from "@/services/incidentService";
+import type { Incident } from "@/types";
 
 interface IncidentsState {
   active: Incident[];
@@ -87,14 +89,15 @@ export const respondToIncidentThunk = createAsyncThunk(
   async (
     {
       id,
+      departmentId,
       action,
       notes,
-    }: { id: string; action: "accept" | "reject"; notes?: string },
+    }: { id: string,departmentId: string; action: "accept" | "reject"; notes?: string },
     thunkAPI
   ) => {
     try {
-      const res = await respondToIncident(id, action, notes);
-      return { id, result: res.data };
+      const res = await respondToIncident(id, departmentId, action, notes);
+      return { id ,departmentId, result: res.data };
     } catch (err: any) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || err.message
@@ -102,6 +105,23 @@ export const respondToIncidentThunk = createAsyncThunk(
     }
   }
 );
+
+export const assignFirefighterss = createAsyncThunk(
+  "incidents/assignFirefighters",
+  async ({ incidentId, firefighterIds }: { incidentId: string; firefighterIds: string[] }) => {
+    const response = await assignFirefighters(incidentId, firefighterIds)
+    return response.data
+  },
+)
+
+export const getAssignedIncidents = createAsyncThunk(
+  "assignedIncidents/fetchAll",
+  async (departmentId: string ) => {
+    const res = await fetchAssignedincidents(departmentId);
+    return res.data;
+  }
+);
+
 
 const incidentSlice = createSlice({
   name: "incidents",
@@ -137,6 +157,23 @@ const incidentSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || "Failed to load active incidents";
       })
+
+
+
+       .addCase(getAssignedIncidents.pending, (state) => {
+        state.loading = true;
+      })
+
+      .addCase(getAssignedIncidents.fulfilled, (state, action) => {
+        state.loading = false;
+        state.active = action.payload;
+      })
+
+      .addCase(getAssignedIncidents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to load active incidents";
+      })
+
 
       .addCase(loadAllIncidents.fulfilled, (state, action) => {
         state.active = action.payload.filter(
@@ -178,7 +215,14 @@ const incidentSlice = createSlice({
         if (action.payload.result?.data?.status === "acknowledged") {
           state.active.unshift(action.payload.result.data);
         }
-      });
+      })
+
+      // .addCase(assignFirefighters.fulfilled, (state, action) => {
+      //   const index = state.pending.findIndex((incident) => incident._id === action.payload.id)
+      //   if (index !== -1) {
+      //     state.pending[index] = action.payload
+      //   }
+      // })
   },
 });
 

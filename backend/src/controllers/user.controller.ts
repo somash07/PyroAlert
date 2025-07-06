@@ -212,6 +212,8 @@ const signInHandler = asyncHandler(
         username: user.username,
         email: user.email,
         type: user.type,
+        lat: user.location?.lat,
+        lng: user.location?.lng
       };
     }
 

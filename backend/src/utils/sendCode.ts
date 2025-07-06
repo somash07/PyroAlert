@@ -4,7 +4,18 @@ import { maileType } from "../types/mailType";
 
 dotenv.config();
 
-const sendCode = (email: string, code?: string, _mailType?: string) => {
+const sendCode = (
+  email: string,
+  code?: string,
+  _mailType?: string,
+  details?: {
+    location?: [number, number];
+    temperature?: number;
+    coordinates?: string;
+    incidentId?: string;
+    firefighterName?: string;
+  }
+) => {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
@@ -27,6 +38,10 @@ const sendCode = (email: string, code?: string, _mailType?: string) => {
           ? "Your Verification Code"
           : _mailType === maileType.CLIENT_REQUEST
           ? "PyroAlert Installation Request Received"
+          : _mailType === maileType.INCIDENT_ALERT
+          ? `🔥 Fire Alert: Incident for ${
+              details?.firefighterName || "Firefighter"
+            }`
           : "IGNORE THIS PLEASE";
 
       const text =
@@ -36,6 +51,8 @@ const sendCode = (email: string, code?: string, _mailType?: string) => {
           ? `Your verification code is ${code}`
           : _mailType === maileType.CLIENT_REQUEST
           ? `You have successfully submitted a request for Smart Sensor Module installation.`
+          : _mailType === maileType.INCIDENT_ALERT
+          ? `🔥 Fire alert at ${details?.location}.\nTemp: ${details?.temperature}°C\nCoordinates: ${details?.coordinates}\nIncident ID: ${details?.incidentId}`
           : "IGNORE THIS PLEASE";
 
       const html =
@@ -80,6 +97,29 @@ const sendCode = (email: string, code?: string, _mailType?: string) => {
             <p style="color: #777; font-size: 14px; margin-top: 5px;">(This is an automated message. Please do not reply.)</p>
           </div>
         `
+          : _mailType === maileType.INCIDENT_ALERT
+          ? `
+        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+          <h2 style="color: #d32f2f;">🚨 Emergency Fire Alert</h2>
+          <p><strong>Firefighter:</strong> ${details?.firefighterName}</p>
+          <p><strong>Location:</strong> ${
+            details?.location && Array.isArray(details.location)
+              ? `<p style="margin-top: 20px;">
+             <a href="https://www.google.com/maps?q=${details.location[1]},${details.location[0]}" 
+                style="display: inline-block; padding: 10px 20px; background-color: #d32f2f; color: #fff; text-decoration: none; border-radius: 5px;">
+               <button>Open in Google Maps</button>
+             </a>
+           </p>`
+              : ""
+          }</p>
+          <p><strong>Temperature:</strong> ${details?.temperature}°C</p>
+          <p><strong>Coordinates:</strong> ${details?.coordinates}</p>
+          <p><strong>Incident ID:</strong> ${details?.incidentId}</p>
+          <p style="margin-top: 20px;">Please prepare for immediate response and coordinate with your team.</p>
+          <hr />
+          <p style="color: #888;">– PyroAlert Dispatch System</p>
+        </div>
+      `
           : "";
 
       const info = await transporter.sendMail({

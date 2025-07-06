@@ -28,6 +28,7 @@ const Dashboard: React.FC = () => {
   const [recentIncidents, setRecentIncidents] = useState<Incident[]>([]);
   const storedUser = localStorage.getItem("userInfo");
   const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
+  const storedUsername =  storedUser ? JSON.parse(storedUser)?.username: "";
 
   console.log(storedDepartmentId);
 
@@ -80,14 +81,14 @@ const Dashboard: React.FC = () => {
     });
 
     socket.on("INCIDENT_ACCEPTED", (incident: Incident) => {
-      toast.success(`Incident accepted by ${incident}`);
+      toast.success(`Incident from ${incident.additional_info?.device_name} has been accepted by ${storedUsername}`);
       dispatch(loadPendingIncidents());
       dispatch(loadActiveIncidents());
     });
 
     socket.on("INCIDENT_REASSIGNED", (incident: Incident) => {
-      toast(
-        `Incident reassigned to ${incident.requested_department?.username}`
+      toast.error(
+        `Incident reassigned `
       );
       dispatch(loadPendingIncidents());
     });
@@ -100,16 +101,16 @@ const Dashboard: React.FC = () => {
     return () => {
       socket.disconnect();
     };
-  }, [dispatch]);
+  }, [dispatch,storedUsername,storedDepartmentId]);
 
-  const handleAccept = (id: string) => {
-    dispatch(respondToIncidentThunk({ id, action: "accept" }));
+  const handleAccept = (id: string,deptId: string) => {
+    dispatch(respondToIncidentThunk({id: id,departmentId: deptId, action: "accept"}));
   };
 
-  const handleReject = (id: string) => {
+  const handleReject = (id: string,deptId: string) => {
     const reason = prompt("Reason for rejection:");
     if (!reason) return;
-    dispatch(respondToIncidentThunk({ id, action: "reject", notes: reason }));
+    dispatch(respondToIncidentThunk({ id:id,departmentId:deptId , action: "reject", notes: reason}));
   };
 
   return (
@@ -175,8 +176,8 @@ const Dashboard: React.FC = () => {
               <PendingRequestCard
                 key={incident._id}
                 incident={incident}
-                onAccept={() => handleAccept(incident._id)}
-                onReject={() => handleReject(incident._id)}
+                onAccept={() => handleAccept(incident._id.toString(),storedDepartmentId.toString())}
+                onReject={() => handleReject(incident._id.toString(),storedDepartmentId.toString())}
               />
             ))}
           </div>

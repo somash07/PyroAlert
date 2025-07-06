@@ -1,12 +1,14 @@
-"use client"
 
 import type React from "react"
 import { useState } from "react"
-import type { FireIncident, Firefighter } from "../../types"
+import type { Firefighter, Incident } from "../../types"
 import { XMarkIcon } from "@heroicons/react/24/outline"
+import { loadActiveIncidents } from "@/store/slices/incidentsSlice"
+import type { AppDispatch } from "@/store/store"
+import { useDispatch } from "react-redux"
 
 interface AssignFirefightersModalProps {
-  incident: FireIncident
+  incident: Incident
   firefighters: Firefighter[]
   onAssign: (incidentId: string, firefighterIds: string[]) => void
   onClose: () => void
@@ -17,7 +19,9 @@ const AssignFirefightersModal: React.FC<AssignFirefightersModalProps> = ({
   firefighters,
   onAssign,
   onClose,
+
 }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [selectedFirefighters, setSelectedFirefighters] = useState<string[]>([])
 
   const availableFirefighters = firefighters.filter((f) => f.status === "available")
@@ -30,7 +34,8 @@ const AssignFirefightersModal: React.FC<AssignFirefightersModalProps> = ({
 
   const handleAssign = () => {
     if (selectedFirefighters.length > 0) {
-      onAssign(incident.id, selectedFirefighters)
+      onAssign(incident._id, selectedFirefighters)
+      dispatch(loadActiveIncidents())
     }
   }
 
@@ -48,8 +53,7 @@ const AssignFirefightersModal: React.FC<AssignFirefightersModalProps> = ({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           <div className="mb-4">
-            <p className="text-sm text-gray-600">Incident: {incident.location.address}</p>
-            <p className="text-sm text-gray-600">Distance: {incident.distance} km</p>
+            {/* <p className="text-sm text-gray-600">Distance: {distance} km</p> */}
           </div>
 
           <div className="mb-6">
@@ -62,13 +66,13 @@ const AssignFirefightersModal: React.FC<AssignFirefightersModalProps> = ({
               ) : (
                 availableFirefighters.map((firefighter) => (
                   <label
-                    key={firefighter.id}
+                    key={firefighter._id}
                     className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     <input
                       type="checkbox"
-                      checked={selectedFirefighters.includes(firefighter.id)}
-                      onChange={() => handleToggleFirefighter(firefighter.id)}
+                      checked={selectedFirefighters.includes(firefighter._id)}
+                      onChange={() => handleToggleFirefighter(firefighter._id)}
                       className="mr-3 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                     />
                     <div className="flex-1 min-w-0">

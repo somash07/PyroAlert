@@ -100,6 +100,7 @@ export interface User {
 
 
 export interface Incident {
+  acceptedBy: string;
   _id: string;
   location: string;
   alert_type: "fire" | "smoke";
@@ -114,7 +115,8 @@ export interface Incident {
     | "in_progress"
     | "resolved"
     | "rejected"
-    | "unassigned";
+    | "unassigned"
+    | "dispatched";
   assigned_firefighters?: Array<{ name: string; _id: string }>;
   assigned_department?: {
     _id: string;

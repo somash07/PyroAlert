@@ -1,8 +1,12 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import Incident, { type IIncident } from "../models/incident.model";
 import { User } from "../models/user.model";
 import mongoose from "mongoose";
 import { broadcastMessage, broadcastToDepartment } from "../socket/broadcaster";
+import { AppError } from "../utils/AppError";
+import { Firefighter } from "../models/fire-fighters.model";
+import { sendCode } from "../utils/sendCode";
+import { maileType } from "../types/mailType";
 
 // Function to calculate distance between two coordinates using Haversine formula
 function calculateDistance(
@@ -66,7 +70,7 @@ async function findNearestFireDepartments(coordinates: [number, number]) {
       );
       return { department: dept, distance };
     });
-    
+
     // Sort by distance (nearest first)
     departmentsWithDistance.sort((a, b) => a.distance - b.distance);
 
@@ -208,24 +212,20 @@ export const respondToIncident = async (
       .populate("requested_department nearby_departments.department")
       .exec()) as any;
 
-    if (!incident) {
-      res.status(404).json({ message: "Incident not found" });
-    }
+    if (!incident)   res.status(404).json({ message: "Incident not found" });
+    
 
-    if (incident.status !== "pending_response") {
-      res.status(400).json({ message: "Incident is not pending response" });
-    }
+    if (incident.status !== "pending_response") res.status(400).json({ message: "Incident is not pending response" });
 
     if (action === "accept") {
       // Fire department accepts the incident
       incident.status = "acknowledged";
-      incident.assigned_department =
-        department_id || incident.requested_department;
+      incident.assigned_department = new mongoose.Types.ObjectId(department_id as string);
       incident.response_time = new Date();
       incident.notes = notes || "Incident accepted by fire department";
 
       await incident.save();
-      await incident.populate("assigned_department", "name address contact");
+      await incident.populate("assigned_department", "username address contact");
 
       broadcastMessage("INCIDENT_ACCEPTED", {
         ...incident.toObject(),
@@ -325,12 +325,10 @@ export const getPendingIncidents = async (req: Request, res: Response) => {
     res.status(200).json(incidents);
   } catch (error: any) {
     console.error("Error fetching pending incidents:", error);
-    res
-      .status(500)
-      .json({
-        message: "Server error fetching pending incidents",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Server error fetching pending incidents",
+      error: error.message,
+    });
   }
 };
 
@@ -397,5 +395,167 @@ export const updateIncidentStatus = async (
       message: "Server error updating incident",
       error: error.message,
     });
+  }
+};
+
+export const assignFirefighters = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { firefighterIds } = req.body;
+
+    if (
+      !firefighterIds ||
+      !Array.isArray(firefighterIds) ||
+      firefighterIds.length === 0
+    ) {
+      return next(new AppError("Please provide valid firefighter IDs", 400));
+    }
+
+    // Check if firefighters are available
+    const firefighters = await Firefighter.find({
+      _id: { $in: firefighterIds },
+      status: "available",
+    });
+
+    if (firefighters.length !== firefighterIds.length) {
+      return next(new AppError("Some firefighters are not available", 400));
+    }
+
+    const incident = await Incident.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: "assigned",
+        assigned_firefighters: firefighterIds,
+        assignedAt: new Date(),
+        // assignedBy: req.user?.id,
+      },
+      { new: true }
+    ).populate("assigned_firefighters");
+
+    if (!incident) {
+      return next(new AppError("Incident not found", 404));
+    }
+
+    // Update firefighter status to busy
+    await Firefighter.updateMany(
+      { _id: { $in: firefighterIds } },
+      { status: "busy" }
+    );
+
+    req.io?.emit("incident-updated", incident);
+    req.io?.emit("firefighters-assigned", {
+      incidentId: incident._id,
+      firefighters,
+    });
+
+    res.json({
+      success: true,
+      data: incident,
+      message: `${firefighters.length} firefighter(s) assigned successfully`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const confirmAndDispatch = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const incident = await Incident.findById(req.params.id).populate(
+      "assigned_firefighters", "name email contact"
+    );
+
+    if (!incident) {
+      return next(new AppError("Incident not found", 404));
+    }
+
+    if (
+      !incident.assigned_firefighters ||
+      incident.assigned_firefighters.length === 0
+    ) {
+      return next(
+        new AppError("No firefighters assigned to this incident", 400)
+      );
+    }
+
+    await Promise.all(
+      incident.assigned_firefighters.map((firefighter: any) =>
+        sendCode(firefighter.email, undefined, maileType.INCIDENT_ALERT, {
+          location: incident.geo_location?.coordinates,
+          temperature: incident.temperature,
+          coordinates: `${incident.geo_location?.coordinates[1]}, ${incident.geo_location?.coordinates[0]}`,
+          incidentId: incident._id?.toString(),
+          firefighterName: firefighter.name,
+        })
+      )
+    );
+
+    // Update incident status
+    await Incident.findByIdAndUpdate(req.params.id, {
+      status: "dispatched",
+      dispatchedAt: new Date(),
+    });
+
+    req.io?.emit("firefighters-dispatched", incident);
+
+    res.json({
+      success: true,
+      message: `Emergency alerts sent to ${incident.assigned_firefighters.length} firefighter(s)`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const completeIncident = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { notes, responseTime } = req.body;
+
+    const incident = await Incident.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: "completed",
+        completedAt: new Date(),
+        completionNotes: notes,
+        actualResponseTime: responseTime,
+        // completedBy: req.user?.id,
+      },
+      { new: true }
+    ).populate("assigned_Firefighters");
+
+    if (!incident) {
+      return next(new AppError("Incident not found", 404));
+    }
+
+    // Update assigned firefighters status back to available
+    if (
+      incident.assigned_firefighters &&
+      incident.assigned_firefighters.length > 0
+    ) {
+      await Firefighter.updateMany(
+        { _id: { $in: incident.assigned_firefighters.map((f) => f._id) } },
+        { status: "available" }
+      );
+    }
+
+    req.io?.emit("incident-completed", incident);
+
+    res.json({
+      success: true,
+      data: incident,
+      message: "Incident marked as completed",
+    });
+  } catch (error) {
+    next(error);
   }
 };
