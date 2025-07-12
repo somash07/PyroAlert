@@ -120,6 +120,7 @@ const signUpHandler = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 
 }));
 exports.signUpHandler = signUpHandler;
 const signInHandler = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const { identifier, password } = req.body;
     const signInValidationResult = signin_validators_1.signinSchema.safeParse({
         identifier,
@@ -177,6 +178,8 @@ const signInHandler = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 
             username: user.username,
             email: user.email,
             type: user.type,
+            lat: (_a = user.location) === null || _a === void 0 ? void 0 : _a.lat,
+            lng: (_b = user.location) === null || _b === void 0 ? void 0 : _b.lng
         };
     }
     return res.status(200).json({
@@ -196,7 +199,7 @@ const codeVerifier = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 0
         });
     }
     const user = yield user_model_1.User.findOne({ username });
-    console.log(user);
+    // console.log(user)
     if (!user) {
         return res.status(404).json({
             success: false,

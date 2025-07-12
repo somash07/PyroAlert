@@ -6,4 +6,5 @@ var maileType;
     maileType["RESET"] = "reset";
     maileType["VERIFY_OTP"] = "verify_otp";
     maileType["CLIENT_REQUEST"] = "client_request";
+    maileType["INCIDENT_ALERT"] = "INCIDENT_ALERT";
 })(maileType || (exports.maileType = maileType = {}));

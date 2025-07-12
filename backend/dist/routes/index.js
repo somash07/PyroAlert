@@ -17,3 +17,5 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./user.route"), exports);
 __exportStar(require("./client-request.route"), exports);
 __exportStar(require("./inquiry-form.route"), exports);
+__exportStar(require("./firefighter.route"), exports);
+__exportStar(require("./alert.routes"), exports);

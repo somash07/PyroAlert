@@ -17,7 +17,7 @@ const nodemailer_1 = __importDefault(require("nodemailer"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const mailType_1 = require("../types/mailType");
 dotenv_1.default.config();
-const sendCode = (email, code, _mailType) => {
+const sendCode = (email, code, _mailType, details) => {
     const transporter = nodemailer_1.default.createTransport({
         host: "smtp.gmail.com",
         port: 587,
@@ -38,14 +38,18 @@ const sendCode = (email, code, _mailType) => {
                     ? "Your Verification Code"
                     : _mailType === mailType_1.maileType.CLIENT_REQUEST
                         ? "PyroAlert Installation Request Received"
-                        : "IGNORE THIS PLEASE";
+                        : _mailType === mailType_1.maileType.INCIDENT_ALERT
+                            ? `🔥 Fire Alert: Incident for ${(details === null || details === void 0 ? void 0 : details.firefighterName) || "Firefighter"}`
+                            : "IGNORE THIS PLEASE";
             const text = _mailType === mailType_1.maileType.RESET
                 ? `Your reset OTP code is ${code}`
                 : _mailType === mailType_1.maileType.VERIFY_OTP
                     ? `Your verification code is ${code}`
                     : _mailType === mailType_1.maileType.CLIENT_REQUEST
                         ? `You have successfully submitted a request for Smart Sensor Module installation.`
-                        : "IGNORE THIS PLEASE";
+                        : _mailType === mailType_1.maileType.INCIDENT_ALERT
+                            ? `🔥 Fire alert at ${details === null || details === void 0 ? void 0 : details.location}.\nTemp: ${details === null || details === void 0 ? void 0 : details.temperature}°C\nCoordinates: ${details === null || details === void 0 ? void 0 : details.coordinates}\nIncident ID: ${details === null || details === void 0 ? void 0 : details.incidentId}`
+                            : "IGNORE THIS PLEASE";
             const html = _mailType === mailType_1.maileType.RESET
                 ? `
           <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
@@ -87,7 +91,28 @@ const sendCode = (email, code, _mailType) => {
             <p style="color: #777; font-size: 14px; margin-top: 5px;">(This is an automated message. Please do not reply.)</p>
           </div>
         `
-                        : "";
+                        : _mailType === mailType_1.maileType.INCIDENT_ALERT
+                            ? `
+        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+          <h2 style="color: #d32f2f;">🚨 Emergency Fire Alert</h2>
+          <p><strong>Firefighter:</strong> ${details === null || details === void 0 ? void 0 : details.firefighterName}</p>
+          <p><strong>Location:</strong> ${(details === null || details === void 0 ? void 0 : details.location) && Array.isArray(details.location)
+                                ? `<p style="margin-top: 20px;">
+             <a href="https://www.google.com/maps?q=${details.location[1]},${details.location[0]}" 
+                style="display: inline-block; padding: 10px 20px; background-color: #d32f2f; color: #fff; text-decoration: none; border-radius: 5px;">
+               <button>Open in Google Maps</button>
+             </a>
+           </p>`
+                                : ""}</p>
+          <p><strong>Temperature:</strong> ${details === null || details === void 0 ? void 0 : details.temperature}°C</p>
+          <p><strong>Coordinates:</strong> ${details === null || details === void 0 ? void 0 : details.coordinates}</p>
+          <p><strong>Incident ID:</strong> ${details === null || details === void 0 ? void 0 : details.incidentId}</p>
+          <p style="margin-top: 20px;">Please prepare for immediate response and coordinate with your team.</p>
+          <hr />
+          <p style="color: #888;">– PyroAlert Dispatch System</p>
+        </div>
+      `
+                            : "";
             const info = yield transporter.sendMail({
                 from: '"PyroAlert" <Pyroalert201@gmail.com>',
                 to: email,
