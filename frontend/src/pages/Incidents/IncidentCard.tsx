@@ -11,9 +11,15 @@ import {
 } from "@heroicons/react/24/outline";
 import { MapPin, ThermometerIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { confirmAndSend } from "@/services/incidentService";
+import {
+  confirmAndSend,
+  fetchActiveIncidents,
+} from "@/services/incidentService";
 import toast from "react-hot-toast";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/store/store";
+import { loadActiveIncidents } from "@/store/slices/incidentsSlice";
 
 interface IncidentCardProps {
   incident: Incident;
@@ -26,7 +32,7 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
   onAccept,
   onAssign,
 }) => {
-  const [isConfirmed, setIsConfirmed] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
   const storedUser = localStorage.getItem("userInfo");
   const storedUserLat = storedUser ? JSON.parse(storedUser)?.lat : null;
   const storedUserLng = storedUser ? JSON.parse(storedUser)?.lng : null;
@@ -101,11 +107,11 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
     console.error("Distance calculation failed:", error);
   }
 
-   function handelConfirm(incidentid: any){
-    confirmAndSend(incidentid)
-    setIsConfirmed(true)
-    toast.success("Notified firefighters")
-  } 
+  function handelConfirm(incidentid: any) {
+    dispatch(loadActiveIncidents());
+    confirmAndSend(incidentid);
+    toast.success("Notified firefighters");
+  }
   return (
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-red-500">
       {/* Header */}
@@ -157,20 +163,21 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
           <MapPinIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-2 flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-xs text-gray-500">Distance</p>
-            <p className="font-semibold text-sm sm:text-base">
-              {distance} km
-            </p>
+            <p className="font-semibold text-sm sm:text-base">{distance} km</p>
           </div>
         </div>
         <div className="flex items-center sm:col-span-1 lg:col-span-1">
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-xs sm:text-sm truncate">
               {/* {incident.location.address} */}
-               <a
+              <a
                 href={`https://www.google.com/maps?q=${incident.geo_location?.coordinates[1]},${incident.geo_location?.coordinates[0]}`}
                 target="black"
               >
-                <Button className="w-auto h-auto p-1 cursor-pointer" variant="outline">
+                <Button
+                  className="w-auto h-auto p-1 cursor-pointer"
+                  variant="outline"
+                >
                   <MapPin className="w-3 h-3 mr-1" />
                   View on googlemaps
                 </Button>
@@ -258,13 +265,16 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
           <p className="text-xs sm:text-sm text-green-800 mb-2">
             Assigned to {incident.assigned_firefighters.length} firefighter(s)
           </p>
-          <button onClick={()=>handelConfirm(incident._id)} className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
+          <button
+            onClick={() => handelConfirm(incident._id)}
+            className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+          >
             Confirm & Send to Location
           </button>
         </div>
       )}
 
-      {isConfirmed &&(
+      {incident.status === "dispatched" && (
         <div className="bg-green-50 p-3 rounded-md">
           <p className="text-xs sm:text-sm text-green-800 mb-2">
             Firefighters dispatched

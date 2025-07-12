@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const app_1 = __importDefault(require("./app"));
+const app_1 = require("./app");
 const dotenv_1 = __importDefault(require("dotenv"));
 const dbConnect_1 = __importDefault(require("./db/dbConnect"));
 dotenv_1.default.config();
@@ -20,7 +20,7 @@ const port = process.env.PORT || 3001;
 const start = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield (0, dbConnect_1.default)(process.env.MONGO_URI);
-        app_1.default.listen(port, () => {
+        app_1.server.listen(port, () => {
             console.log(`server running on http://localhost:${port}`);
         });
     }

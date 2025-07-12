@@ -31,8 +31,8 @@ var UserType;
     UserType["Firedepartment"] = "Firedepartment";
 })(UserType || (exports.UserType = UserType = {}));
 const locationSchema = new mongoose_1.Schema({
-    lng: Number,
     lat: Number,
+    lng: Number,
 });
 const userSchema = new mongoose_1.Schema({
     username: {

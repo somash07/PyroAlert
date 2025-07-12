@@ -16,10 +16,9 @@ const initialState: FirefightersState = {
   error: null,
 };
 
-
 export const fetchFirefightersByDepartment = createAsyncThunk(
   "firefighters/getFirefightersByDepartment",
-  async (id : string ) => {
+  async (id: string) => {
     const response = await firefighterService.getFirefightersByDepartment(id);
     return response.data.data;
   }
@@ -27,21 +26,34 @@ export const fetchFirefightersByDepartment = createAsyncThunk(
 
 export const addFirefighter = createAsyncThunk(
   "firefighters/addFirefighter",
-  async (firefighter: Omit<Firefighter, "_id">) => {
-    const response = await firefighterService.addFirefighter(firefighter);
-    return response.data;
+  async (firefighter: Omit<Firefighter, "_id">, { rejectWithValue }) => {
+    try {
+      const response = await firefighterService.addFirefighter(firefighter);
+      return response.data;
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || "Failed to add firefighter";
+        return rejectWithValue(message);
+    }
   }
 );
 
 export const updateFirefighter = createAsyncThunk(
   "firefighters/updateFirefighter",
-  async (firefighter: { _id: string; name: string; email: string; contact: string; departmentId: string }) => {
-    const response = await firefighterService.updateFirefighter(firefighter._id, firefighter)
-    return response.data
-  },
-)
-
-
+  async (firefighter: {
+    _id: string;
+    name: string;
+    email: string;
+    contact: string;
+    departmentId: string;
+  }) => {
+    const response = await firefighterService.updateFirefighter(
+      firefighter._id,
+      firefighter
+    );
+    return response.data;
+  }
+);
 
 export const deleteFirefighter = createAsyncThunk(
   "firefighters/deleteFirefighter",
@@ -50,8 +62,6 @@ export const deleteFirefighter = createAsyncThunk(
     return id;
   }
 );
-
-
 
 const firefightersSlice = createSlice({
   name: "firefighters",
@@ -103,11 +113,10 @@ const firefightersSlice = createSlice({
         state.loading = false;
         state.error = action.error.message ?? "Failed to delete firefighter";
       })
-      .addCase(resetAll,()=>initialState)
+      .addCase(resetAll, () => initialState);
   },
 });
 export const fetchFirefigthers = (state: RootState) =>
   state.firefighters.firefighters;
 
 export default firefightersSlice.reducer;
-

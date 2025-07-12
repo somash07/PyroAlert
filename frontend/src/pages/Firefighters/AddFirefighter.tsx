@@ -59,10 +59,16 @@ const AddFirefighter: React.FC = () => {
   }, [setValue, storedDepartmentId]);
 
   const onSubmit = async (data: FirefighterFormInputs) => {
-    await dispatch(addFirefighter({ ...data, status: "available" as const }));
+    try{
+    await dispatch(addFirefighter({ ...data, status: "available" as const })).unwrap();
     await dispatch(fetchFirefightersByDepartment(storedDepartmentId));
-    toast.success("Firefighter added successfully!");
-
+    }catch (err: any) {
+    const errorMessage =
+      typeof err === "string"
+        ? err
+        : err?.message || "Failed to add firefighter";
+    toast.error(errorMessage);
+  }
     reset({
       name: "",
       email: "",

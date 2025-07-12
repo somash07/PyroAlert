@@ -220,12 +220,13 @@ export const respondToIncident = async (
     if (action === "accept") {
       // Fire department accepts the incident
       incident.status = "acknowledged";
+      console.log(department_id as string)
       incident.assigned_department = new mongoose.Types.ObjectId(department_id as string);
       incident.response_time = new Date();
       incident.notes = notes || "Incident accepted by fire department";
 
       await incident.save();
-      await incident.populate("assigned_department", "username address contact");
+      await incident.populate("assigned_department", "username ");
 
       broadcastMessage("INCIDENT_ACCEPTED", {
         ...incident.toObject(),
@@ -238,6 +239,7 @@ export const respondToIncident = async (
       });
     } else {
       // Fire department rejects the incident
+      
       // Try to assign to next nearest department
       const nearbyDepts = incident.nearby_departments || [];
       const currentDeptIndex = nearbyDepts.findIndex(
@@ -253,7 +255,7 @@ export const respondToIncident = async (
         incident.status = "pending_response";
         incident.rejection_history = incident.rejection_history || [];
         incident.rejection_history.push({
-          department: department_id || incident.requested_department,
+          department: department_id,
           reason: notes || "No reason provided",
           timestamp: new Date(),
         });
