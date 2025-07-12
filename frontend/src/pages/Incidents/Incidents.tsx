@@ -108,6 +108,15 @@ const Incidents: React.FC = () => {
           <>
             {/* Show newest incidents first */}
             {[...active]
+              .filter((incident) => {
+                const dept = incident.assigned_department;
+                return (
+                  dept &&
+                  (typeof dept === "string"
+                    ? dept === storedDepartmentId
+                    : dept._id === storedDepartmentId)
+                );
+              })
               .sort(
                 (a, b) =>
                   new Date(b.timestamp).getTime() -

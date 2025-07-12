@@ -16,7 +16,7 @@ const About: React.FC = () => {
   const teamMembers: TeamMember[] = [
     {
       name: "Sumina Shrestha",
-      image: "/team/suminaPhoto.jpg"
+      image: "/homepage.jpg"
     },
     {
       name: "Somash Manandhar",

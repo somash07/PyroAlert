@@ -22,6 +22,6 @@ export const respondToIncident = (
   departmentId: string,
   action: "accept" | "reject",
   notes?: string,
-) => API.post(`/api/v1/alert/${id}/respond`, {departmentId, action ,notes });
+) => API.post(`/api/v1/alert/${id}/respond`, {department_id: departmentId, action ,notes });
 
 export const confirmAndSend = (id: string) => API.patch(`/api/v1/alert/${id}/confirm`);
