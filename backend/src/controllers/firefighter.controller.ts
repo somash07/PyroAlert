@@ -137,7 +137,11 @@ export const createFirefighter = async (
 
     const existingFirefighter = await Firefighter.findOne({ email });
     if (existingFirefighter) {
-      return next(new AppError("Email already exists", 400));
+      // return next(new AppError("Email already exists", 400));
+       res.status(409).json({
+          success: false,
+          message: "FireFighter already exists",
+        });
     }
 
     const firefighter = new Firefighter({
