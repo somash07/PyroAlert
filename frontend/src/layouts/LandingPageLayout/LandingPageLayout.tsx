@@ -15,7 +15,6 @@ const LandingPageLayout = () => {
       <LandingNav />
       <AnimatePresence mode="wait">
         <ScrollToTop />
-
         <Outlet key={location.pathname} />
       </AnimatePresence>
       <Footer />

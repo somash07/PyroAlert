@@ -32,8 +32,8 @@ export const addFirefighter = createAsyncThunk(
       return response.data;
     } catch (err: any) {
       const message =
-        err?.response?.data?.message || "Failed to add firefighter";
-        return rejectWithValue(message);
+        err?.response?.data?.message || "Failed to add firefighters";
+      return rejectWithValue(message);
     }
   }
 );
@@ -113,7 +113,19 @@ const firefightersSlice = createSlice({
         state.loading = false;
         state.error = action.error.message ?? "Failed to delete firefighter";
       })
-      .addCase(resetAll, () => initialState);
+      .addCase(resetAll, () => initialState)
+
+      //update firefighter
+
+      .addCase(updateFirefighter.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateFirefighter.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(updateFirefighter.rejected, (state) => {
+        state.loading = false;
+      });
   },
 });
 export const fetchFirefigthers = (state: RootState) =>

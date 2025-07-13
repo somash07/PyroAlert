@@ -6,15 +6,20 @@ export const signupSchema = z
       .string()
       .min(2, { message: "username must be less than of 2 characters" })
       .max(20, { message: "username must be more than of 20 characters" }),
-    email: z.string().email({ message: "Invalid email address" }),
-    location: z.object({
-      lat: z
-        .number({ invalid_type_error: "Latitude must be a number" })
-        .refine((val) => !isNaN(val), { message: "Latitude is required" }),
-      lng: z
-        .number({ invalid_type_error: "Longitude must be a number" })
-        .refine((val) => !isNaN(val), { message: "Longitude is required" }),
-    },{message: "Location is required"}),
+    email: z
+      .string()
+      .email({ message: "Invalid email address" }),
+    location: z.object(
+      {
+        lat: z
+          .number({ invalid_type_error: "Latitude must be a number" })
+          .refine((val) => !isNaN(val), { message: "Latitude is required" }),
+        lng: z
+          .number({ invalid_type_error: "Longitude must be a number" })
+          .refine((val) => !isNaN(val), { message: "Longitude is required" }),
+      },
+      { message: "Location is required" }
+    ),
     password: z
       .string()
       .min(8, { message: "Your password must be at least 8 characters long" })
