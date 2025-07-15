@@ -27,6 +27,7 @@ export interface FirefighterDocument extends Document {
   departmentId: Types.ObjectId
   createdAt: Date
   updatedAt: Date
+  image?: string
 }
 
 // Emergency Contact Sub-schema
@@ -97,6 +98,10 @@ const FirefighterSchema = new Schema<FirefighterDocument>(
       ref: "User",
       required: [true, "User (Fire Station) reference is required"],
     },
+    image: {
+      type: String,
+      default: ""
+    }
   },
   {
     timestamps: true,

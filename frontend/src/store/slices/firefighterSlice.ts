@@ -26,9 +26,9 @@ export const fetchFirefightersByDepartment = createAsyncThunk(
 
 export const addFirefighter = createAsyncThunk(
   "firefighters/addFirefighter",
-  async (firefighter: Omit<Firefighter, "_id">, { rejectWithValue }) => {
+  async (formData: FormData, { rejectWithValue }) => {
     try {
-      const response = await firefighterService.addFirefighter(firefighter);
+      const response = await firefighterService.addFirefighter(formData);
       return response.data;
     } catch (err: any) {
       const message =

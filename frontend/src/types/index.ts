@@ -40,6 +40,7 @@ export interface Firefighter {
   }
   isActive?: boolean
   lastStatusUpdate?: string
+  image?: string
 }
 
 export interface FireDepartment {
