@@ -21,7 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Trash2, Info, Users, MapPin, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { toast } from "sonner";
@@ -94,66 +94,118 @@ export default function FirefighterList({
   };
 
   return (
-    <div className="relative">
+    <div className="relative space-y-6">
+      {/* Information Header */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <Users className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-blue-800">
+            <p className="font-medium mb-1">Firefighters Management</p>
+            <p>Manage all firefighters in the system. You can add new firefighters, edit their information, assign them to departments, and control their availability status.</p>
+          </div>
+        </div>
+      </div>
+
       {fetching ? (
         <div className="flex justify-center items-center h-40">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
         <>
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="text-base">Name</TableHead>
-                <TableHead className="text-base">Email</TableHead>
-                <TableHead className="text-base">Address</TableHead>
-                <TableHead className="text-base">Contact</TableHead>
-                <TableHead className="text-base">Status</TableHead>
-                <TableHead className="text-base">Actions</TableHead>
+              <TableRow className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+                <TableHead className="text-base font-semibold text-gray-700 py-4">Name</TableHead>
+                <TableHead className="text-base font-semibold text-gray-700 py-4">Email</TableHead>
+                <TableHead className="text-base font-semibold text-gray-700 py-4">Address</TableHead>
+                <TableHead className="text-base font-semibold text-gray-700 py-4">Contact</TableHead>
+                <TableHead className="text-base font-semibold text-gray-700 py-4">Status</TableHead>
+                <TableHead className="text-base font-semibold text-gray-700 py-4">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {firefighters.map((item) => (
-                <TableRow key={item._id}>
-                  <TableCell className="font-medium text-base">
-                    {item.name}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {item.email}
-                  </TableCell>
-                  <TableCell>{item.address}</TableCell>
-                  <TableCell>{item.contact}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        item.status === "busy"
-                          ? "border-red-500 text-red-500"
-                          : "border-green-500 text-green-500"
-                      }
-                    >
-                      {item.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Pencil
-                        className="w-4 h-4 cursor-pointer text-muted-foreground"
-                        onClick={() => editHandler(item._id)}
-                      />
-                      <Trash2
-                        onClick={() => {
-                          setSelectedId(item._id);
-                          setDeleteDialogOpen(true);
-                        }}
-                        className="w-4 h-4 cursor-pointer text-red-500"
-                      />
+              {firefighters.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-12">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                        <Users className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-medium text-gray-600 mb-1">No firefighters found</p>
+                        <p className="text-sm text-gray-500">Add your first firefighter to get started</p>
+                      </div>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                firefighters.map((item, index) => (
+                  <TableRow 
+                    key={item._id} 
+                    className={`hover:bg-blue-50/50 transition-colors duration-200 ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
+                    }`}
+                  >
+                    <TableCell className="font-medium text-base text-gray-900 py-4">
+                      {item.name}
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600 py-4">
+                      {item.email}
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                          <MapPin className="h-3 w-3 text-blue-600" />
+                        </div>
+                        <span className="text-sm text-gray-700">{item.address}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                          <Phone className="h-3 w-3 text-green-600" />
+                        </div>
+                        <span className="text-sm text-gray-700">{item.contact}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <Badge
+                        variant="outline"
+                        className={
+                          item.status === "busy"
+                            ? "border-red-200 text-red-700 bg-red-50 font-medium"
+                            : "border-green-200 text-green-700 bg-green-50 font-medium"
+                        }
+                      >
+                        {item.status === "busy" ? "Busy" : "Available"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => editHandler(item._id)}
+                          className="w-8 h-8 bg-blue-100 hover:bg-blue-200 rounded-lg flex items-center justify-center transition-colors duration-200"
+                        >
+                          <Pencil className="w-4 h-4 text-blue-600" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedId(item._id);
+                            setDeleteDialogOpen(true);
+                          }}
+                          className="w-8 h-8 bg-red-100 hover:bg-red-200 rounded-lg flex items-center justify-center transition-colors duration-200"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
+        </div>
 
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <DialogContent>

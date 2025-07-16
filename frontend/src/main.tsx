@@ -30,6 +30,7 @@ import NotFound from "./pages/NotFound/index.tsx";
 import AdminProtected from "./components/AdminProtected.tsx";
 import Firefighters from "./pages/admin/system/firefighters/index.tsx";
 import Departments from "./pages/admin/system/departments/index.tsx";
+import Clients from "./pages/admin/system/clients/index.tsx";
 
 const router = createBrowserRouter([
   {
@@ -63,6 +64,10 @@ const router = createBrowserRouter([
       {
         path: "departments",
         element: <Departments />,
+      },
+      {
+        path: "clients",
+        element: <Clients />,
       },
     ],
   },

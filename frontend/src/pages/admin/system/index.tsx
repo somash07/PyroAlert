@@ -32,7 +32,7 @@ const SYSTEM_SECTIONS = [
   },
   {
     title: "Clients",
-    description: "Manage clients who receive fire safety services.",
+    description: "View and manage client requests for fire safety services.",
     icon: ClipboardList,
     path: "/admin/clients",
   },

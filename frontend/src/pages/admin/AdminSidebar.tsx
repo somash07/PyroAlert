@@ -95,7 +95,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 key={item.id}
                 onClick={() => setActiveView(item.id)}
                 className={`w-full flex items-center px-4 sm:px-6 py-3 text-left hover:bg-red-700 transition-colors ${
-                  activeView.includes(item.id)
+                  activeView.includes(item.id) || 
+                  (item.id === "system" && (activeView.includes("firefighters") || activeView.includes("departments") || activeView.includes("clients")))
                     ? "bg-red-700 border-r-4 border-white"
                     : ""
                 }`}

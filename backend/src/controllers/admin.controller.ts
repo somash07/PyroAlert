@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { Firefighter } from "../models/fire-fighters.model";
+import { ClientRequest } from "../models/clientRequest.model";
 import { AppError } from "../utils/AppError";
 import { validationResult } from "express-validator";
-
+import bcrypt from "bcryptjs";
 export const getAdminFireFighters = async (
   req: Request,
   res: Response,
@@ -121,6 +122,147 @@ export const getAllUsersAdmin = async (
         username: u.username,
       })),
       count: users.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllDepartmentsAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const departments = await User.find({ type: "Firedepartment" });
+    res.json({
+      success: true,
+      data: departments,
+      count: departments.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addDepartmentAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id, username, email, password, location, isActive } = req.body;
+
+    // Validate required fields for new department
+    if (!id && (!password || password.trim() === "")) {
+      return next(
+        new AppError("Password is required for new departments", 400)
+      );
+    }
+
+    if (id && mongoose.Types.ObjectId.isValid(id)) {
+      const existingDepartment = await User.findById(id);
+      if (existingDepartment) {
+        existingDepartment.username = username ?? existingDepartment.username;
+        existingDepartment.email = email ?? existingDepartment.email;
+        existingDepartment.location = location ?? existingDepartment.location;
+        existingDepartment.isVerified =
+          isActive ?? existingDepartment.isVerified;
+
+        if (password && password.trim() !== "") {
+          // Hash the password if provided
+
+          existingDepartment.password = await bcrypt.hash(password, 10);
+        }
+
+        await existingDepartment.save();
+
+        res.status(200).json({
+          success: true,
+          message: "Department Updated Successfully",
+        });
+        return;
+      }
+    }
+
+    // Hash the password for new department
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const department = new User({
+      username,
+      email,
+      password: hashedPassword,
+      type: "Firedepartment",
+      location,
+      isVerified: isActive ?? true,
+    });
+
+    await department.save();
+
+    req.io?.emit("department-added", department);
+
+    res.status(201).json({
+      success: true,
+      data: department,
+      message: "Department added successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDepartmentByIdAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const department = await User.findById(req.params.id);
+    if (!department) {
+      return next(new AppError("Department not found", 404));
+    }
+
+    res.json({
+      success: true,
+      data: department,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDepartmentAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const department = await User.findByIdAndDelete(req.params.id);
+    if (!department) {
+      return next(new AppError("Department not found", 404));
+    }
+
+    res.json({
+      success: true,
+      message: "Department deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllClientsAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const clients = await ClientRequest.find({}).sort({ createdAt: -1 });
+    res.json({
+      success: true,
+      data: clients,
+      count: clients.length,
     });
   } catch (error) {
     next(error);
