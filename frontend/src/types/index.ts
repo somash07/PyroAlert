@@ -25,7 +25,7 @@ export interface Firefighter {
   address: string
   departmentId: string
   contact: string
-  status: "available" | "busy" | "offline"
+  status: "available" | "busy"
   specializations?: string[]
   yearsOfExperience?: number
   certifications?: Array<{
@@ -40,6 +40,7 @@ export interface Firefighter {
   }
   isActive?: boolean
   lastStatusUpdate?: string
+  image?: string
 }
 
 export interface FireDepartment {

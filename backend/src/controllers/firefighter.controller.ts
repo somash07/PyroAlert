@@ -126,6 +126,7 @@ export const createFirefighter = async (
       return next(new AppError("Validation failed", 400, errors.array()));
     }
 
+
     const {
       name,
       email,
@@ -137,11 +138,18 @@ export const createFirefighter = async (
 
     const existingFirefighter = await Firefighter.findOne({ email });
     if (existingFirefighter) {
-      // return next(new AppError("Email already exists", 400));
-      res.status(409).json({
-        success: false,
-        message: "FireFighter already exists",
-      });
+      //  res.status(409).json({
+      //     success: false,
+      //     message: "FireFighter already exists",
+      //   });
+      return next(new AppError("Firefighter email already exists", 409));
+    }
+
+    let imagePath = "";
+    if (req.file?.filename) {
+      imagePath = `${req.protocol}://${req.get("host")}/uploads/fighters/${
+        req.file.filename
+      }`;
     }
 
     const firefighter = new Firefighter({
@@ -151,6 +159,7 @@ export const createFirefighter = async (
       address,
       departmentId,
       status,
+      image: imagePath,
     });
 
     await firefighter.save();
@@ -200,7 +209,7 @@ export const updateFirefighter = async (
       return next(new AppError("Firefighter not found", 404));
     }
 
-    req.io?.emit("firefighter-updated", firefighter);
+    // req.io?.emit("firefighter-updated", firefighter);
 
     res.json({
       success: true,

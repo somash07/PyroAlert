@@ -12,6 +12,7 @@ import {
 import mongoose from "mongoose";
 import { AppError } from "../utils/AppError";
 import { body } from "express-validator";
+import upload from "../middlewares/multer.middleware";
 import {
   addFirefighterAdmin,
   getAdminFireFighters,
@@ -60,7 +61,7 @@ router.get("/available", getAvailableFirefighters);
 router.get("/:id", validateObjectId, getFirefighterById);
 
 // Create new firefighter
-router.post("/", createFirefighter);
+router.post("/", upload.single("image"),createFirefighter);
 
 // Update firefighter
 router.patch("/:id", validateObjectId, updateFirefighter);
