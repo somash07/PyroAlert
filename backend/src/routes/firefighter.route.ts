@@ -8,6 +8,8 @@ import {
   updateFirefighter,
   updateFirefighterStatus,
   getFirefightersByDepartment,
+  resetFirefighterPassword,
+  sendFirefighterPasswordReset,
 } from "../controllers/firefighter.controller";
 import mongoose from "mongoose";
 import { AppError } from "../utils/AppError";
@@ -80,5 +82,9 @@ router.patch(
 
 // Delete firefighter
 router.delete("/:id", validateObjectId, deleteFirefighter);
+
+// Password reset routes
+router.post("/reset-password", resetFirefighterPassword);
+router.post("/send-reset-email", sendFirefighterPasswordReset);
 
 export { router as fireFighterRoute };
