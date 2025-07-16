@@ -30,7 +30,7 @@ API.interceptors.response.use(
       const message = error.response.data?.message || "An error occurred";
       toast.error(message); // or use any inline display
     } else if (error.request) {
-      toast.error("No response from server.");
+      toast.error("Something went wrong. Please try again later ");
     } else {
       toast.error("Request setup error.");
     }
