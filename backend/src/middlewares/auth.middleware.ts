@@ -14,15 +14,16 @@ const authenticateWithJwt = (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-) => {
+): void | Promise<void> => {
   const token =
     req.cookies.accessToken || req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    return res.status(400).json({
+     res.status(400).json({
       success: false,
       message: "Invalid Token",
     });
+    return;
   }
 
   jwt.verify(
@@ -55,7 +56,7 @@ const authenticateWithJwt = (
   );
 };
 
-const authorize = (types: string[]) => {
+const authorize = (types: string[]) : any => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!types.includes(req.user.type)) {
       return res.status(500).json({

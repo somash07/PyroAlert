@@ -14,7 +14,6 @@ declare module "express-serve-static-core" {
 
 const validStatus = ["available", "busy", "offline"];
 
-
 export const getFirefightersByDepartment = async (
   req: Request,
   res: Response,
@@ -27,7 +26,9 @@ export const getFirefightersByDepartment = async (
   }
 
   try {
-    const firefighters = await Firefighter.find({ departmentId }).sort({ name: 1 });
+    const firefighters = await Firefighter.find({ departmentId }).sort({
+      name: 1,
+    });
 
     res.status(200).json({
       success: true,
@@ -37,8 +38,7 @@ export const getFirefightersByDepartment = async (
   } catch (error) {
     next(error);
   }
-
-}
+};
 export const getAllFirefighters = async (
   req: Request,
   res: Response,
@@ -138,10 +138,10 @@ export const createFirefighter = async (
     const existingFirefighter = await Firefighter.findOne({ email });
     if (existingFirefighter) {
       // return next(new AppError("Email already exists", 400));
-       res.status(409).json({
-          success: false,
-          message: "FireFighter already exists",
-        });
+      res.status(409).json({
+        success: false,
+        message: "FireFighter already exists",
+      });
     }
 
     const firefighter = new Firefighter({
@@ -178,7 +178,7 @@ export const updateFirefighter = async (
       return next(new AppError("Validation failed", 400, errors.array()));
     }
 
-    const { name, email, contact, department, status , address} = req.body;
+    const { name, email, contact, department, status, address } = req.body;
 
     if (email) {
       const existingFirefighter = await Firefighter.findOne({
@@ -192,7 +192,7 @@ export const updateFirefighter = async (
 
     const firefighter = await Firefighter.findByIdAndUpdate(
       req.params.id,
-      { name, email, contact, department, status , address},
+      { name, email, contact, department, status, address },
       { new: true, runValidators: true }
     );
 

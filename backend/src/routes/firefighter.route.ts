@@ -12,6 +12,12 @@ import {
 import mongoose from "mongoose";
 import { AppError } from "../utils/AppError";
 import { body } from "express-validator";
+import {
+  addFirefighterAdmin,
+  getAdminFireFighters,
+  getFirefighterByIdAdmin,
+} from "../controllers/admin.controller";
+import { authenticateWithJwt, authorize } from "../middlewares/auth.middleware";
 const router = express.Router();
 
 export const validateObjectId = (
@@ -25,12 +31,27 @@ export const validateObjectId = (
   next();
 };
 
+router.get(
+  "/getAllFirefightersAdmin",
+  authenticateWithJwt,
+  authorize(["Admin"]),
+  getAdminFireFighters
+);
+
+router.post(
+  "/addFirefighterAdmin",
+  authenticateWithJwt,
+  authorize(["Admin"]),
+  addFirefighterAdmin
+);
+
+router.get("/getSingleFirefighterAdmin/:id", getFirefighterByIdAdmin);
 
 // Get all firefighters
 router.get("/", getAllFirefighters);
 
 //get firefighters according to department
-router.get("/:departmentId", getFirefightersByDepartment)
+router.get("/:departmentId", getFirefightersByDepartment);
 
 // Get available firefighters
 router.get("/available", getAvailableFirefighters);
