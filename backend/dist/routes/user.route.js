@@ -12,6 +12,7 @@ const router = express_1.default.Router();
 exports.userRoute = router;
 router.route("/sign-up").post(user_controller_1.signUpHandler);
 router.route("/sign-in").post(user_controller_1.signInHandler);
+router.post("/admin/login", user_controller_1.adminLoginHandler);
 router.route("/verify-code").post(user_controller_1.codeVerifier);
 router.route("/get-verification-code").post(user_controller_1.getVerificationCode);
 router.route("/reset-password").post(user_controller_1.resetPassword);

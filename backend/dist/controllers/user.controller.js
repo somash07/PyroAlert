@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshAccessToken = exports.logoutUser = exports.resetPassword = exports.getVerificationCode = exports.codeVerifier = exports.signInHandler = exports.signUpHandler = void 0;
+exports.refreshAccessToken = exports.logoutUser = exports.resetPassword = exports.getVerificationCode = exports.codeVerifier = exports.signInHandler = exports.signUpHandler = exports.adminLoginHandler = void 0;
 const user_model_1 = require("../models/user.model");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const signup_validators_1 = require("../validators/signup.validators");
@@ -179,7 +179,7 @@ const signInHandler = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 
             email: user.email,
             type: user.type,
             lat: (_a = user.location) === null || _a === void 0 ? void 0 : _a.lat,
-            lng: (_b = user.location) === null || _b === void 0 ? void 0 : _b.lng
+            lng: (_b = user.location) === null || _b === void 0 ? void 0 : _b.lng,
         };
     }
     return res.status(200).json({
@@ -189,6 +189,59 @@ const signInHandler = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 
     });
 }));
 exports.signInHandler = signInHandler;
+exports.adminLoginHandler = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { identifier, password } = req.body;
+    if (!identifier || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "Email or username and password are required.",
+        });
+    }
+    if (identifier !== process.env.ADMIN_EMAIL &&
+        identifier !== process.env.ADMIN_USERNAME) {
+        return res.status(401).json({
+            success: false,
+            message: "Invalid credentials.",
+        });
+    }
+    const adminUser = yield user_model_1.User.findOne({
+        $or: [
+            { email: process.env.ADMIN_EMAIL },
+            { username: process.env.ADMIN_USERNAME },
+        ],
+    });
+    if (!adminUser) {
+        return res.status(500).json({
+            success: false,
+            message: "Admin user not initialized. Please seed the database.",
+        });
+    }
+    const isPasswordCorrect = yield bcryptjs_1.default.compare(password, adminUser.password);
+    if (!isPasswordCorrect) {
+        return res.status(401).json({
+            success: false,
+            message: "Passwords do not match.",
+        });
+    }
+    const refreshToken = yield (0, generateTokens_1.generateRefreshToken)(adminUser);
+    const accessToken = yield (0, generateTokens_1.generateAccessToken)(adminUser);
+    res.cookie("refreshToken", refreshToken, options);
+    res.cookie("accessToken", accessToken, options);
+    return res.status(200).json({
+        success: true,
+        message: "Admin logged in successfully",
+        data: {
+            user: {
+                _id: adminUser._id,
+                username: adminUser.username,
+                email: adminUser.email,
+                type: adminUser.type,
+            },
+            refreshToken,
+            accessToken,
+        },
+    });
+}));
 const codeVerifier = (0, asyncHandeler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, verifyCode } = req.body;
     const verifyCodeValidation = verify_code_validators_1.verifySchema.safeParse({ code: verifyCode });

@@ -8,11 +8,19 @@ import {
   updateFirefighter,
   updateFirefighterStatus,
   getFirefightersByDepartment,
+  resetFirefighterPassword,
+  sendFirefighterPasswordReset,
 } from "../controllers/firefighter.controller";
 import mongoose from "mongoose";
 import { AppError } from "../utils/AppError";
 import { body } from "express-validator";
 import upload from "../middlewares/multer.middleware";
+import {
+  addFirefighterAdmin,
+  getAdminFireFighters,
+  getFirefighterByIdAdmin,
+} from "../controllers/admin.controller";
+import { authenticateWithJwt, authorize } from "../middlewares/auth.middleware";
 const router = express.Router();
 
 export const validateObjectId = (
@@ -26,12 +34,27 @@ export const validateObjectId = (
   next();
 };
 
+router.get(
+  "/getAllFirefightersAdmin",
+  authenticateWithJwt,
+  authorize(["Admin"]),
+  getAdminFireFighters
+);
+
+router.post(
+  "/addFirefighterAdmin",
+  authenticateWithJwt,
+  authorize(["Admin"]),
+  addFirefighterAdmin
+);
+
+router.get("/getSingleFirefighterAdmin/:id", getFirefighterByIdAdmin);
 
 // Get all firefighters
 router.get("/", getAllFirefighters);
 
 //get firefighters according to department
-router.get("/:departmentId", getFirefightersByDepartment)
+router.get("/:departmentId", getFirefightersByDepartment);
 
 // Get available firefighters
 router.get("/available", getAvailableFirefighters);
@@ -59,5 +82,9 @@ router.patch(
 
 // Delete firefighter
 router.delete("/:id", validateObjectId, deleteFirefighter);
+
+// Password reset routes
+router.post("/reset-password", resetFirefighterPassword);
+router.post("/send-reset-email", sendFirefighterPasswordReset);
 
 export { router as fireFighterRoute };
