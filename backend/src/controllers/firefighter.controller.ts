@@ -2,6 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import { Firefighter } from "../models/fire-fighters.model";
 import { AppError } from "../utils/AppError";
 import { validationResult } from "express-validator";
+import { sendCode } from "../utils/sendCode";
+import { maileType } from "../types/mailType";
+import crypto from "crypto";
 
 import { Server as SocketIOServer } from "socket.io";
 import mongoose from "mongoose";
@@ -13,7 +16,6 @@ declare module "express-serve-static-core" {
 }
 
 const validStatus = ["available", "busy", "offline"];
-
 
 export const getFirefightersByDepartment = async (
   req: Request,
@@ -27,7 +29,9 @@ export const getFirefightersByDepartment = async (
   }
 
   try {
-    const firefighters = await Firefighter.find({ departmentId }).sort({ name: 1 });
+    const firefighters = await Firefighter.find({ departmentId }).sort({
+      name: 1,
+    });
 
     res.status(200).json({
       success: true,
@@ -37,8 +41,7 @@ export const getFirefightersByDepartment = async (
   } catch (error) {
     next(error);
   }
-
-}
+};
 export const getAllFirefighters = async (
   req: Request,
   res: Response,
@@ -126,6 +129,7 @@ export const createFirefighter = async (
       return next(new AppError("Validation failed", 400, errors.array()));
     }
 
+
     const {
       name,
       email,
@@ -137,11 +141,27 @@ export const createFirefighter = async (
 
     const existingFirefighter = await Firefighter.findOne({ email });
     if (existingFirefighter) {
-       res.status(409).json({
-          success: false,
-          message: "FireFighter already exists",
-        });
+      //  res.status(409).json({
+      //     success: false,
+      //     message: "FireFighter already exists",
+      //   });
+      return next(new AppError("Firefighter email already exists", 409));
     }
+
+    let imagePath = "";
+    if (req.file?.filename) {
+      imagePath = `${req.protocol}://${req.get("host")}/uploads/fighters/${
+        req.file.filename
+      }`;
+    }
+
+    // Generate reset password token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    const resetPasswordExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     const firefighter = new Firefighter({
       name,
@@ -150,16 +170,29 @@ export const createFirefighter = async (
       address,
       departmentId,
       status,
+      image: imagePath,
+      resetPasswordToken,
+      resetPasswordExpiry,
     });
 
     await firefighter.save();
 
-    req.io?.emit("firefighter-added", firefighter); // Optional chaining in case `io` is missing
+    // Send password reset email
+    const resetUrl = `${req.protocol}://${req.get("host")}/reset-password?token=${resetToken}&email=${email}&type=firefighter`;
+    
+    try {
+      await sendCode(email, resetUrl, maileType.FIREFIGHTER_PASSWORD_RESET);
+    } catch (emailError) {
+      console.error("Failed to send password reset email:", emailError);
+      // Don't fail the request if email fails
+    }
+
+    req.io?.emit("firefighter-added", firefighter);
 
     res.status(201).json({
       success: true,
       data: firefighter,
-      message: "Firefighter added successfully",
+      message: "Firefighter added successfully. Password reset email sent.",
     });
   } catch (error) {
     next(error);
@@ -177,7 +210,7 @@ export const updateFirefighter = async (
       return next(new AppError("Validation failed", 400, errors.array()));
     }
 
-    const { name, email, contact, department, status , address} = req.body;
+    const { name, email, contact, department, status, address } = req.body;
 
     if (email) {
       const existingFirefighter = await Firefighter.findOne({
@@ -191,7 +224,7 @@ export const updateFirefighter = async (
 
     const firefighter = await Firefighter.findByIdAndUpdate(
       req.params.id,
-      { name, email, contact, department, status , address},
+      { name, email, contact, department, status, address },
       { new: true, runValidators: true }
     );
 
@@ -282,6 +315,105 @@ export const getAvailableFirefighters = async (
       success: true,
       data: firefighters,
       count: firefighters.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetFirefighterPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { token, email, password } = req.body;
+
+    if (!token || !email || !password) {
+      return next(new AppError("Token, email, and password are required", 400));
+    }
+
+    // Hash the token to compare with stored token
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    // Find firefighter with valid token
+    const firefighter = await Firefighter.findOne({
+      email,
+      resetPasswordToken,
+      resetPasswordExpiry: { $gt: Date.now() },
+    });
+
+    if (!firefighter) {
+      return next(new AppError("Invalid or expired reset token", 400));
+    }
+
+    // Hash the new password
+    const bcrypt = require("bcryptjs");
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update firefighter password and clear reset token
+    firefighter.password = hashedPassword;
+    firefighter.resetPasswordToken = "";
+    firefighter.resetPasswordExpiry = undefined;
+
+    await firefighter.save();
+
+    res.json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const sendFirefighterPasswordReset = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return next(new AppError("Email is required", 400));
+    }
+
+    const firefighter = await Firefighter.findOne({ email });
+
+    if (!firefighter) {
+      return next(new AppError("Firefighter not found", 404));
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    const resetPasswordExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    // Update firefighter with reset token
+    firefighter.resetPasswordToken = resetPasswordToken;
+    firefighter.resetPasswordExpiry = resetPasswordExpiry;
+    await firefighter.save();
+
+    // Send password reset email
+    const resetUrl = `${req.protocol}://${req.get("host")}/reset-password?token=${resetToken}&email=${email}&type=firefighter`;
+    
+    try {
+      await sendCode(email, resetUrl, maileType.FIREFIGHTER_PASSWORD_RESET);
+    } catch (emailError) {
+      console.error("Failed to send password reset email:", emailError);
+      return next(new AppError("Failed to send password reset email", 500));
+    }
+
+    res.json({
+      success: true,
+      message: "Password reset email sent successfully",
     });
   } catch (error) {
     next(error);

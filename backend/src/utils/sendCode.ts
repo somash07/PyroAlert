@@ -38,6 +38,8 @@ const sendCode = (
           ? "Your Verification Code"
           : _mailType === maileType.CLIENT_REQUEST
           ? "PyroAlert Installation Request Received"
+          : _mailType === maileType.FIREFIGHTER_PASSWORD_RESET
+          ? "PyroAlert Firefighter Account - Set Your Password"
           : _mailType === maileType.INCIDENT_ALERT
           ? `🔥 Fire Alert: Incident for ${
               details?.firefighterName || "Firefighter"
@@ -51,6 +53,8 @@ const sendCode = (
           ? `Your verification code is ${code}`
           : _mailType === maileType.CLIENT_REQUEST
           ? `You have successfully submitted a request for Smart Sensor Module installation.`
+          : _mailType === maileType.FIREFIGHTER_PASSWORD_RESET
+          ? `Welcome to PyroAlert! Your firefighter account has been created. Please set your password by clicking the link: ${code}`
           : _mailType === maileType.INCIDENT_ALERT
           ? `🔥 Fire alert at ${details?.location}.\nTemp: ${details?.temperature}°C\nCoordinates: ${details?.coordinates}\nIncident ID: ${details?.incidentId}`
           : "IGNORE THIS PLEASE";
@@ -95,6 +99,52 @@ const sendCode = (
             <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
             <p style="color: #777; margin-bottom: 0;">Thank you,<br />Team PyroAlert</p>
             <p style="color: #777; font-size: 14px; margin-top: 5px;">(This is an automated message. Please do not reply.)</p>
+          </div>
+        `
+          : _mailType === maileType.FIREFIGHTER_PASSWORD_RESET
+          ? `
+          <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333; background: #f8f9fa; border-radius: 8px; padding: 30px; max-width: 600px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #2c3e50; font-size: 28px; margin-bottom: 10px;">🔥 Welcome to PyroAlert</h1>
+              <p style="color: #7f8c8d; font-size: 18px;">Your Firefighter Account Setup</p>
+            </div>
+            
+            <div style="background: white; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
+              <h2 style="color: #2c3e50; font-size: 22px; margin-bottom: 20px;">Account Created Successfully</h2>
+              <p style="color: #34495e; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                Your firefighter account has been created in the PyroAlert system. To complete your account setup, 
+                you need to set a secure password for your account.
+              </p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${code}" 
+                   style="display: inline-block; padding: 15px 30px; background-color: #3498db; color: white; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  Set Your Password
+                </a>
+              </div>
+              
+              <p style="color: #7f8c8d; font-size: 14px; margin-top: 20px;">
+                <strong>Important:</strong> This link will expire in 24 hours for security reasons. 
+                If you don't set your password within this time, please contact your administrator.
+              </p>
+            </div>
+            
+            <div style="background: #ecf0f1; padding: 20px; border-radius: 6px; border-left: 4px solid #3498db;">
+              <h3 style="color: #2c3e50; font-size: 18px; margin-bottom: 10px;">What's Next?</h3>
+              <ul style="color: #34495e; font-size: 14px; line-height: 1.6; margin: 0; padding-left: 20px;">
+                <li>Click the "Set Your Password" button above</li>
+                <li>Choose a strong password (at least 6 characters)</li>
+                <li>You'll be able to access your firefighter dashboard</li>
+                <li>Receive real-time alerts and manage your status</li>
+              </ul>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #bdc3c7; margin: 30px 0;">
+            <p style="color: #7f8c8d; font-size: 14px; text-align: center; margin: 0;">
+              Thank you for joining PyroAlert!<br>
+              <strong>Team PyroAlert</strong><br>
+              <em>This is an automated message. Please do not reply.</em>
+            </p>
           </div>
         `
           : _mailType === maileType.INCIDENT_ALERT

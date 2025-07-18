@@ -24,6 +24,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { useMemo } from "react";
 import type { Firefighter } from "@/types";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { DotLoader } from "react-spinners";
@@ -53,10 +54,13 @@ const AddFirefighter: React.FC = () => {
 
   /* local state */
   const [toDeleteId, setToDeleteId] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingFirefighter, setEditingFirefighter] =
     useState<Firefighter | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   /* react‑hook‑form */
   const {
@@ -81,11 +85,36 @@ const AddFirefighter: React.FC = () => {
     if (storedDepartmentId) setValue("departmentId", storedDepartmentId);
   }, [storedDepartmentId, setValue]);
 
+  const filteredFirefighters = useMemo(() => {
+    if (!searchTerm.trim()) return firefighters;
+
+    const term = searchTerm.toLowerCase();
+    return firefighters.filter(
+      (ff) =>
+        ff.name.toLowerCase().includes(term) ||
+        ff.email.toLowerCase().includes(term) ||
+        ff.contact.toLowerCase().includes(term)
+    );
+  }, [firefighters, searchTerm]);
+
   /* ───────── Add firefighter ───────── */
   const onSubmit = async (data: FirefighterFormInputs) => {
     try {
+      const formData = new FormData();
+
+      formData.append("name", data.name);
+      formData.append("email", data.email);
+      formData.append("contact", data.contact);
+      formData.append("address", data.address);
+      formData.append("departmentId", storedDepartmentId);
+      formData.append("status", "available");
+
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
       await dispatch(
-        addFirefighter({ ...data, status: "available" }) // always available
+        addFirefighter(formData) // always available
       ).unwrap();
       await dispatch(fetchFirefightersByDepartment(storedDepartmentId));
       toast.success("Firefighter added!");
@@ -98,21 +127,31 @@ const AddFirefighter: React.FC = () => {
         departmentId: storedDepartmentId,
         status: "available",
       });
+      setImageFile(null);
+      setPreviewUrl(null);
     } catch (err: any) {
-      toast.error(err?.message || "Failed to add firefighter");
+      console.log(err);
     }
   };
 
   const confirmDelete = async () => {
     if (!toDeleteId) return;
     try {
-      await dispatch(deleteFirefighter(toDeleteId));
+      await dispatch(deleteFirefighter(toDeleteId)).unwrap();
       toast.success("Firefighter deleted!");
       await dispatch(fetchFirefightersByDepartment(storedDepartmentId));
     } catch (err: any) {
-      toast.error(err?.message || "Failed to delete firefighter");
+      // toast.error(err?.message || "Failed to delete firefighter");
     } finally {
       setToDeleteId(null);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
@@ -149,7 +188,10 @@ const AddFirefighter: React.FC = () => {
       {/* header buttons */}
       <div className="mb-6 flex gap-5">
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm)
+            setPreviewUrl(null)
+          }}
           className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
         >
           <PlusIcon className="mr-2 h-5 w-5" />
@@ -165,6 +207,15 @@ const AddFirefighter: React.FC = () => {
           <RefreshCcw className="mr-2 h-4 w-4" />
           Refresh
         </Button>
+
+        {/* Search input */}
+        <input
+          type="text"
+          placeholder="Search name, email, or number"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full sm:w-80 px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+        />
       </div>
 
       {/* add‑new form */}
@@ -215,12 +266,39 @@ const AddFirefighter: React.FC = () => {
                   required: "Address is required",
                 })}
               />
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Profile Photo
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-auto hover:cursor-pointer hover:bg-gray-300 p-4 bg-gray-200 rounded-md"
+                />
+                {previewUrl && (
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="mt-2 h-24 rounded-md"
+                  />
+                )}
+              </div>
             </div>
 
             {/* buttons */}
             <div className="flex space-x-3">
-              <SubmitBtn>{loading ? "adding..." : "Add Firefighter"}</SubmitBtn>
-              <CancelBtn onClick={() => setShowForm(false)} />
+              <SubmitBtn>
+                {loading ? (
+                  <DotLoader size={15} color="#ffffff" />
+                ) : (
+                  "Add Firefighter"
+                )}
+              </SubmitBtn>
+              <CancelBtn onClick={() => {
+                setShowForm(false)
+              }} />
             </div>
           </form>
         </div>
@@ -304,7 +382,7 @@ const AddFirefighter: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {firefighters.map((ff) => (
+            {filteredFirefighters.map((ff) => (
               <tr key={ff._id || ff.name}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {ff.name}
@@ -333,7 +411,7 @@ const AddFirefighter: React.FC = () => {
                         onClick={() => setToDeleteId(ff._id)}
                         className="text-red-600 hover:text-red-900 p-1"
                       >
-                        {loading && toDeleteId === ff._id? (
+                        {loading && toDeleteId === ff._id ? (
                           <DotLoader size={15} color="#FF0000" />
                         ) : (
                           <TrashIcon className="h-5 w-5" />

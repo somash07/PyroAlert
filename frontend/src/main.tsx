@@ -1,4 +1,3 @@
-
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import {
@@ -23,8 +22,56 @@ import FireStationDashboardLayout from "./layouts/FireStationDashboardLayout/Fir
 import { Provider } from "react-redux";
 import { store } from "./store/store.ts";
 import { Toaster } from "react-hot-toast";
+import AdminLogin from "./pages/admin/AdminLogin.tsx";
+import AdminLayout from "./pages/admin/AdminLayout.tsx";
+import System from "./pages/admin/system/index.tsx";
+import Settings from "./pages/admin/settings/index.tsx";
+import NotFound from "./pages/NotFound/index.tsx";
+import AdminProtected from "./components/AdminProtected.tsx";
+import Firefighters from "./pages/admin/system/firefighters/index.tsx";
+import Departments from "./pages/admin/system/departments/index.tsx";
+import Clients from "./pages/admin/system/clients/index.tsx";
+import FirefighterPasswordReset from "./pages/FirefighterPasswordReset.tsx";
 
 const router = createBrowserRouter([
+  {
+    path: "/admin/login",
+    element: <AdminLogin />,
+  },
+  {
+    path: "/admin",
+    element: (
+      <AdminProtected>
+        <AdminLayout />
+      </AdminProtected>
+    ),
+    children: [
+      {
+        index: true,
+        element: <System />,
+      },
+      {
+        path: "system",
+        element: <System />,
+      },
+      {
+        path: "settings",
+        element: <Settings />,
+      },
+      {
+        path: "firefighters",
+        element: <Firefighters />,
+      },
+      {
+        path: "departments",
+        element: <Departments />,
+      },
+      {
+        path: "clients",
+        element: <Clients />,
+      },
+    ],
+  },
   {
     path: "/",
     element: <LandingPageLayout />,
@@ -46,6 +93,7 @@ const router = createBrowserRouter([
         path: "/reset-password",
         element: <ResetPassword />,
       },
+
       {
         path: "joinus",
         element: <SignupLogin />,
@@ -83,6 +131,14 @@ const router = createBrowserRouter([
         </Provider>
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/reset-password",
+    element: <FirefighterPasswordReset />,
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 createRoot(document.getElementById("root")!).render(

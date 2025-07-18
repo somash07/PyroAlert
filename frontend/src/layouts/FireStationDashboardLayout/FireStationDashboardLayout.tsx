@@ -1,77 +1,96 @@
+import type React from "react";
+import { useState, useEffect } from "react";
+import { socketService } from "../../services/socketService";
+import FireStationSidebar from "./FireStationDashboardSidebar";
+import Dashboard from "@/pages/Dashboard/Dashboard";
+import Incidents from "@/pages/Incidents/Incidents";
+import Firefighters from "@/pages/Firefighters/Firefighters";
+import MapView from "@/pages/MapView/MapView";
+import History from "@/pages/History/History";
+import { Settings } from "lucide-react";
+import {
+  HomeIcon,
+  ExclamationTriangleIcon,
+  UserGroupIcon,
+  MapIcon,
+  ClockIcon,
+  CogIcon,
+} from "@heroicons/react/24/outline";
 
-
-import type React from "react"
-import { useState, useEffect } from "react"
-import { socketService } from "../../services/socketService"
-import FireStationSidebar from "./FireStationDashboardSidebar"
-import Dashboard from "@/pages/Dashboard/Dashboard"
-import Incidents from "@/pages/Incidents/Incidents"
-import Firefighters from "@/pages/Firefighters/Firefighters"
-import MapView from "@/pages/MapView/MapView"
-import History from "@/pages/History/History"
-import { Settings } from "lucide-react"
+const menuItems = [
+  { id: "dashboard", label: "Dashboard", icon: HomeIcon },
+  { id: "incidents", label: "Incidents", icon: ExclamationTriangleIcon },
+  { id: "firefighters", label: "Firefighters", icon: UserGroupIcon },
+  { id: "map", label: "Map View", icon: MapIcon },
+  { id: "history", label: "History", icon: ClockIcon },
+  { id: "settings", label: "Settings", icon: CogIcon },
+];
 
 const FireStationDashboardLayout: React.FC = () => {
-  const [activeView, setActiveView] = useState("dashboard")
-  const [isSocketConnected, setIsSocketConnected] = useState(false)
-  const [connectionAttempts, setConnectionAttempts] = useState(0)
+  const [activeView, setActiveView] = useState("dashboard");
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [connectionAttempts, setConnectionAttempts] = useState(0);
 
   useEffect(() => {
     // Initialize WebSocket connection
-    console.log("🔌 Initializing WebSocket connection...")
-    socketService.connect()
+    console.log("🔌 Initializing WebSocket connection...");
+    socketService.connect();
 
     // Check connection status periodically
     const checkConnection = () => {
-      const connected = socketService.isConnected()
-      setIsSocketConnected(connected)
+      const connected = socketService.isConnected();
+      setIsSocketConnected(connected);
 
       if (!connected) {
-        setConnectionAttempts((prev) => prev + 1)
+        setConnectionAttempts((prev) => prev + 1);
       } else {
-        setConnectionAttempts(0)
+        setConnectionAttempts(0);
       }
-    }
+    };
 
-    const connectionInterval = setInterval(checkConnection, 2000)
+    const connectionInterval = setInterval(checkConnection, 2000);
 
     // Initial check
-    checkConnection()
+    checkConnection();
 
     // Cleanup on unmount
     return () => {
-      clearInterval(connectionInterval)
-    }
-  }, [])
+      clearInterval(connectionInterval);
+    };
+  }, []);
 
   const handleRetryConnection = () => {
-    console.log("🔄 Manual retry connection...")
-    socketService.retry()
-    setConnectionAttempts(0)
-  }
+    console.log("🔄 Manual retry connection...");
+    socketService.retry();
+    setConnectionAttempts(0);
+  };
 
   const renderContent = () => {
     switch (activeView) {
       case "dashboard":
-        return <Dashboard />
+        return <Dashboard />;
       case "incidents":
-        return <Incidents />
+        return <Incidents />;
       case "firefighters":
-        return <Firefighters />
+        return <Firefighters />;
       case "map":
-        return <MapView />
+        return <MapView />;
       case "history":
-        return <History />
+        return <History />;
       case "settings":
-        return <Settings />
+        return <Settings />;
       default:
-        return <Dashboard />
+        return <Dashboard />;
     }
-  }
+  };
 
   return (
     <div className="flex h-screen bg-gray-100 w-screen">
-      <FireStationSidebar activeView={activeView} setActiveView={setActiveView} />
+      <FireStationSidebar
+        activeView={activeView}
+        setActiveView={setActiveView}
+        menuItems={menuItems}
+      />
 
       {/* Main content area */}
       <div className="flex-1 overflow-auto relative lg:ml-0">
@@ -85,9 +104,13 @@ const FireStationDashboardLayout: React.FC = () => {
             }`}
           >
             <div
-              className={`w-2 h-2 rounded-full mr-2 ${isSocketConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
+              className={`w-2 h-2 rounded-full mr-2 ${
+                isSocketConnected ? "bg-green-500 animate-pulse" : "bg-red-500"
+              }`}
             />
-            <span className="hidden sm:inline">{isSocketConnected ? "Live Updates" : "⚠️ Disconnected"}</span>
+            <span className="hidden sm:inline">
+              {isSocketConnected ? "Live Updates" : "⚠️ Disconnected"}
+            </span>
             <span className="sm:hidden">{isSocketConnected ? "🔌" : "⚠️"}</span>
           </div>
 
@@ -106,7 +129,7 @@ const FireStationDashboardLayout: React.FC = () => {
         <div className="pt-16 lg:pt-0">{renderContent()}</div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default FireStationDashboardLayout
+export default FireStationDashboardLayout;

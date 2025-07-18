@@ -1,7 +1,12 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
-import { UserIcon, PhoneIcon, EnvelopeIcon, MapIcon } from "@heroicons/react/24/outline";
+import {
+  UserIcon,
+  PhoneIcon,
+  EnvelopeIcon,
+  MapIcon,
+} from "@heroicons/react/24/outline";
 import { fetchFirefightersByDepartment } from "@/store/slices/firefighterSlice";
 
 const FirefighterInfo: React.FC = () => {
@@ -57,8 +62,15 @@ const FirefighterInfo: React.FC = () => {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className="bg-red-100 p-3 rounded-full">
-                <UserIcon className="h-6 w-6 text-red-600" />
+              <div className="bg-red-100 rounded-full w-12 h-12 overflow-hidden flex items-center justify-center">
+                {firefighter.image ? (
+                  <img
+                    src={`${firefighter.image}`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <UserIcon className="h-6 w-6 text-red-600" />
+                )}
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">
@@ -79,13 +91,21 @@ const FirefighterInfo: React.FC = () => {
           <div className="mt-4 grid grid-cols-3 gap-4">
             <div className="flex items-center">
               <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-2" />
-              <span className="text-sm text-gray-600">{firefighter.email}</span>
+              <a
+                href={`mailto:${firefighter.email}`}
+                className="text-sm text-gray-600 hover:text-blue-500 cursor-pointer"
+              >
+                {firefighter.email}
+              </a>
             </div>
             <div className="flex items-center">
               <PhoneIcon className="h-5 w-5 text-gray-400 mr-2" />
-              <span className="text-sm text-gray-600">
+              <a
+                href={`tel:${firefighter.contact}`}
+                className="text-sm text-gray-600 hover:text-blue-500"
+              >
                 {firefighter.contact}
-              </span>
+              </a>
             </div>
             <div className="flex items-center">
               <MapIcon className="h-5 w-5 text-gray-400 mr-2" />

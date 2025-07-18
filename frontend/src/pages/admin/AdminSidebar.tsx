@@ -13,13 +13,13 @@ import type { AppDispatch } from "@/store/store";
 import { resetAll } from "@/store/actions/resetAction";
 import { logout } from "@/store/slices/authSlice";
 
-interface FireStationSidebarProps {
+interface AdminSidebarProps {
   activeView: string;
   setActiveView: (view: string) => void;
   menuItems: { id: string; label: string; icon: any }[];
 }
 
-const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
+const AdminSidebar: React.FC<AdminSidebarProps> = ({
   activeView,
   setActiveView,
   menuItems,
@@ -37,15 +37,10 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
       dispatch(resetAll());
       dispatch(logout());
       toast.success("Logged out successfully!");
-      navigate("/joinus/login");
+      navigate("/admin");
     } catch (err) {
       toast.error("Cannot logout! Please try again.");
     }
-    setIsMobileMenuOpen(false);
-  };
-
-  const handleMenuItemClick = (itemId: string) => {
-    setActiveView(itemId);
     setIsMobileMenuOpen(false);
   };
 
@@ -87,21 +82,21 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
       >
         {/* Header */}
         <div className="p-4 sm:p-6 border-b border-red-700">
-          <h1 className="text-lg sm:text-xl font-bold truncate">
-            Fire Department
-          </h1>
+          <h1 className="text-lg sm:text-xl font-bold truncate">Admin</h1>
         </div>
 
         {/* Navigation Menu */}
         <nav className="flex-1 py-4 overflow-y-auto">
           {menuItems.map((item) => {
+            console.log("match bhayo ki nai", item.id, activeView);
             const Icon = item.icon;
             return (
               <button
                 key={item.id}
-                onClick={() => handleMenuItemClick(item.id)}
+                onClick={() => setActiveView(item.id)}
                 className={`w-full flex items-center px-4 sm:px-6 py-3 text-left hover:bg-red-700 transition-colors ${
-                  activeView === item.id
+                  activeView.includes(item.id) || 
+                  (item.id === "system" && (activeView.includes("firefighters") || activeView.includes("departments") || activeView.includes("clients")))
                     ? "bg-red-700 border-r-4 border-white"
                     : ""
                 }`}
@@ -118,7 +113,8 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
         {/* Footer */}
         <div className="p-4 sm:p-6 border-t border-red-700">
           <div className="mb-4">
-            <p className="text-xs text-red-200 truncate">{user?.username}</p>
+            <h3 className="text-sm font-semibold">Admin</h3>
+            <p className="text-xs text-red-200 truncate">@ {user?.username}</p>
           </div>
           <button
             onClick={handleSignOut}
@@ -133,4 +129,4 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
   );
 };
 
-export default FireStationSidebar;
+export default AdminSidebar;

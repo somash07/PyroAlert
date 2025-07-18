@@ -23,7 +23,6 @@ const options: CookieOptions = {
   secure: true,
 };
 
-
 const signUpHandler = asyncHandler(
   async (
     req: Request,
@@ -31,7 +30,6 @@ const signUpHandler = asyncHandler(
   ): Promise<Response<ApiResponse>> => {
     let { username, email, password, type, location } = req.body;
     const { lat, lng } = location;
-
 
     // Default to "Firedepartment" if not provided
     if (!type) {
@@ -59,7 +57,7 @@ const signUpHandler = asyncHandler(
       });
     }
 
-    if (!username || !email || !password || !type || !lat ||!lng) {
+    if (!username || !email || !password || !type || !lat || !lng) {
       return res.status(400).json({
         success: false,
         message: "Some field is missing here",
@@ -138,7 +136,6 @@ const signInHandler = asyncHandler(
     req: Request,
     res: Response<ApiResponse>
   ): Promise<Response<ApiResponse>> => {
-
     const { identifier, password } = req.body;
 
     const signInValidationResult = signinSchema.safeParse({
@@ -213,7 +210,7 @@ const signInHandler = asyncHandler(
         email: user.email,
         type: user.type,
         lat: user.location?.lat,
-        lng: user.location?.lng
+        lng: user.location?.lng,
       };
     }
 
@@ -221,6 +218,78 @@ const signInHandler = asyncHandler(
       success: true,
       message: "User logged in successfully",
       data: { user: loggedInUser, refreshToken, accessToken },
+    });
+  }
+);
+
+export const adminLoginHandler = asyncHandler(
+  async (req: Request, res: Response<ApiResponse>) => {
+    const { identifier, password } = req.body;
+
+    if (!identifier || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email or username and password are required.",
+      });
+    }
+
+    if (
+      identifier !== process.env.ADMIN_EMAIL &&
+      identifier !== process.env.ADMIN_USERNAME
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials.",
+      });
+    }
+
+    const adminUser = await User.findOne({
+      $or: [
+        { email: process.env.ADMIN_EMAIL },
+        { username: process.env.ADMIN_USERNAME },
+      ],
+    });
+
+    if (!adminUser) {
+      return res.status(500).json({
+        success: false,
+        message: "Admin user not initialized. Please seed the database.",
+      });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      adminUser.password
+    );
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: "Passwords do not match.",
+      });
+    }
+
+    const refreshToken = await generateRefreshToken(
+      adminUser as TokenPropsUser
+    );
+    const accessToken = await generateAccessToken(adminUser as TokenPropsUser);
+
+    res.cookie("refreshToken", refreshToken, options);
+    res.cookie("accessToken", accessToken, options);
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin logged in successfully",
+      data: {
+        user: {
+          _id: adminUser._id,
+          username: adminUser.username,
+          email: adminUser.email,
+          type: adminUser.type,
+        },
+        refreshToken,
+        accessToken,
+      },
     });
   }
 );
@@ -275,7 +344,7 @@ const codeVerifier = asyncHandler(
 
 const getVerificationCode = asyncHandler(
   async (req: Request, res: Response) => {
-    const { email} = req.body;
+    const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({
