@@ -70,7 +70,7 @@ static void send_fire_alert_http(void) {
         "\"timestamp\": %lld,"
         "\"confidence\": %.2f,"
         "\"source_device_id\": \"esp32-c6-001\","
-        "\"geo_location\": {\"type\": \"Point\", \"coordinates\": [85.4478716, 27.6745405]},"
+        "\"geo_location\": {\"type\": \"Point\", \"coordinates\": [85.345002, 27.6499376]},"
         "\"additional_info\": {"
             "\"camera_id\": \"camera_001\","
             "\"detection_method\": \"MQ2 + Flame\","
