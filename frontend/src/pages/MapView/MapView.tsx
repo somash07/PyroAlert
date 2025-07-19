@@ -1,9 +1,7 @@
-import React from 'react'
+import React from "react";
 
 const MapView = () => {
-  return (
-    <div>MapView</div>
-  )
-}
+  return <div>map</div>;
+};
 
-export default MapView
+export default MapView;
