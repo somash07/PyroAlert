@@ -53,6 +53,11 @@ const FirefighterInfo: React.FC = () => {
     );
   }
 
+  if(firefighters.length === 0 ){
+    return <div>
+      No fire fighters available 
+    </div>
+  }
   return (
     <div className="space-y-4">
       {firefighters.map((firefighter) => (

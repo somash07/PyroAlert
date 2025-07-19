@@ -11,7 +11,7 @@ import {
 } from "../../store/slices/firefighterSlice";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { PencilIcon, RefreshCcw } from "lucide-react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -117,7 +117,7 @@ const AddFirefighter: React.FC = () => {
         addFirefighter(formData) // always available
       ).unwrap();
       await dispatch(fetchFirefightersByDepartment(storedDepartmentId));
-      toast.success("Firefighter added!");
+      toast("Firefighter added!");
       setShowForm(false);
       reset({
         name: "",
@@ -138,7 +138,7 @@ const AddFirefighter: React.FC = () => {
     if (!toDeleteId) return;
     try {
       await dispatch(deleteFirefighter(toDeleteId)).unwrap();
-      toast.success("Firefighter deleted!");
+      toast.error("Firefighter deleted!");
       await dispatch(fetchFirefightersByDepartment(storedDepartmentId));
     } catch (err: any) {
       // toast.error(err?.message || "Failed to delete firefighter");
@@ -189,8 +189,8 @@ const AddFirefighter: React.FC = () => {
       <div className="mb-6 flex gap-5">
         <button
           onClick={() => {
-            setShowForm(!showForm)
-            setPreviewUrl(null)
+            setShowForm(!showForm);
+            setPreviewUrl(null);
           }}
           className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
         >
@@ -296,9 +296,11 @@ const AddFirefighter: React.FC = () => {
                   "Add Firefighter"
                 )}
               </SubmitBtn>
-              <CancelBtn onClick={() => {
-                setShowForm(false)
-              }} />
+              <CancelBtn
+                onClick={() => {
+                  setShowForm(false);
+                }}
+              />
             </div>
           </form>
         </div>
@@ -480,7 +482,7 @@ const InputField: React.FC<InputProps> = ({
 const SubmitBtn: React.FC<React.PropsWithChildren> = ({ children }) => (
   <button
     type="submit"
-    className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+    className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
   >
     {children}
   </button>

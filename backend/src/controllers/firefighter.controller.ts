@@ -210,7 +210,7 @@ export const updateFirefighter = async (
       return next(new AppError("Validation failed", 400, errors.array()));
     }
 
-    const { name, email, contact, department, status, address } = req.body;
+    const { name, email, contact, department, status, address} = req.body;
 
     if (email) {
       const existingFirefighter = await Firefighter.findOne({

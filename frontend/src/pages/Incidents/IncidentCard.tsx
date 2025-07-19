@@ -15,8 +15,7 @@ import {
   confirmAndSend,
   fetchActiveIncidents,
 } from "@/services/incidentService";
-import toast from "react-hot-toast";
-import { useState } from "react";
+import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/store/store";
 import { loadActiveIncidents } from "@/store/slices/incidentsSlice";
@@ -142,15 +141,6 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
       {/* Main Info Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="flex items-center">
-          <ThermometerIcon className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500 mr-2 flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xs text-gray-500">Temperature</p>
-            <p className="font-semibold text-sm sm:text-base">
-              {incident.temperature}°C
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center">
           <ClockIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 mr-2 flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-xs text-gray-500">Time</p>
@@ -190,20 +180,12 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
       {/* Detection Info */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4">
         <div className="flex items-center">
-          <span className="text-xs text-gray-500 mr-2">Detection Method</span>
-          <p className="font-semibold text-xs sm:text-sm">
-            {incident.additional_info?.detection_method === "YOLOv8"
-              ? "🤖 AI Camera"
-              : "📱 Manual"}
-          </p>
-        </div>
-        <div className="flex items-center">
           <span className="text-xs text-gray-500 mr-2">Detection Type</span>
           <p className="font-semibold text-xs sm:text-sm">
             {incident.alert_type === "fire"
-              ? "🔥 Fire"
+              ? "Fire"
               : incident.alert_type === "smoke"
-              ? "💨 Smoke"
+              ? "Smoke"
               : "⚠️ Other"}
           </p>
         </div>
@@ -217,15 +199,7 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
         )}
       </div>
 
-      {/* AI Confidence */}
-      {incident.confidence && (
-        <div className="mb-4 bg-blue-50 p-3 rounded-md">
-          <p className="text-xs sm:text-sm text-blue-800">
-            <strong>AI Confidence:</strong>{" "}
-            {(incident.confidence * 100).toFixed(1)}%
-          </p>
-        </div>
-      )}
+      
 
       {/* Action Buttons */}
       {incident.status === "pending_response" && (
@@ -252,7 +226,7 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
         <div className="flex">
           <button
             onClick={() => onAssign(incident)}
-            className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm w-full sm:w-auto"
+            className="flex items-center justify-center px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 transition-colors text-sm w-full sm:w-auto hover:cursor-pointer"
           >
             <UserGroupIcon className="h-4 w-4 mr-2" />
             Assign Firefighters
