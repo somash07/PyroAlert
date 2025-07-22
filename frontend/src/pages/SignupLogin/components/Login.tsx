@@ -97,7 +97,6 @@ export default function Login() {
               id="email"
               type="text"
               placeholder="Enter your email"
-              autoComplete="off"
               className={`h-11 ${
                 errors.identifier
                   ? "border-red-500 focus:border-red-500"

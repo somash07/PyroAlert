@@ -218,7 +218,8 @@ export const respondToIncident = async (
     if (incident.status !== "pending_response") res.status(400).json({ message: "Incident is not pending response" });
 
     if (action === "accept") {
-      // Fire department accepts the incident
+      // Fire department accepts the 
+      
       incident.status = "acknowledged";
       console.log(department_id as string)
       incident.assigned_department = new mongoose.Types.ObjectId(department_id as string);

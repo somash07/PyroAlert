@@ -154,7 +154,7 @@ const Dashboard: React.FC = () => {
           color="text-red-500"
         />
         <StatCard
-          title="Available Firefighters"
+          title="Total Firefighters"
           value={stats.availableFirefighters}
           icon={Users}
           description="Ready for deployment"
@@ -177,7 +177,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {pendingRequests.length > 0 && (
-        <div className="bg-orange-50 p-6 rounded-lg border-2 border-orange-200">
+        <div className="bg-orange-50 p-6 border-2 border-orange-200">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-orange-800 flex items-center">
               <AlertTriangle className="w-5 h-5 mr-2" />
@@ -220,7 +220,7 @@ const Dashboard: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8">
+          <div className="text-center py-8 h-full">
             <AlertTriangle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
             <p className="text-gray-500">No recent alerts to display</p>
             <p className="text-sm text-gray-400">

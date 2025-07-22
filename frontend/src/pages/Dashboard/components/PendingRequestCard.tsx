@@ -20,7 +20,7 @@ const PendingRequestCard: React.FC<{
               {incident.alert_type === "fire"
                 ? "Fire Detected"
                 : "Smoke Detected"} 
-              <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full animate-pulse">
+              <span className="ml-2 px-2 py-1 bg-red-100 text-orange-800 text-xs rounded-full animate-pulse">
                 ACTION REQUIRED
               </span>
 
