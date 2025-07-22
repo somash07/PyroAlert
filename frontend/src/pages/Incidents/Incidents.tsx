@@ -22,7 +22,7 @@ const Incidents: React.FC = () => {
     (state: RootState) => state.firefighters
   );
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(
-    null
+  null
   );
   const [showAssignModal, setShowAssignModal] = useState(false);
   const storedUser = localStorage.getItem("userInfo");

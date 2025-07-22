@@ -34,8 +34,8 @@ const initialState: IncidentsState = {
 
 export const loadPendingIncidents = createAsyncThunk(
   "incidents/fetchPending",
-  async () => {
-    const res = await fetchPendingIncidents();
+  async (department_id: string) => {
+    const res = await fetchPendingIncidents(department_id);
     return res.data;
   }
 );

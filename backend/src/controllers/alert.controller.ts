@@ -312,13 +312,14 @@ export const respondToIncident = async (
   }
 };
 
+
 export const getPendingIncidents = async (req: Request, res: Response) => {
   try {
-    const { department_id } = req.query;
+    const { department_id } = req.params;
 
     const query: any = { status: "pending_response" };
-    if (department_id) {
-      query.requested_department = department_id;
+    if (department_id && typeof department_id === "string" && mongoose.Types.ObjectId.isValid(department_id)) {
+      query.requested_department = new mongoose.Types.ObjectId(department_id);
     }
 
     const incidents = await Incident.find(query)
@@ -334,6 +335,7 @@ export const getPendingIncidents = async (req: Request, res: Response) => {
     });
   }
 };
+
 
 export const getActiveIncidents = async (req: Request, res: Response) => {
   try {
