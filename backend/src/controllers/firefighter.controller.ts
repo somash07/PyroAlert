@@ -5,9 +5,13 @@ import { validationResult } from "express-validator";
 import { sendCode } from "../utils/sendCode";
 import { maileType } from "../types/mailType";
 import crypto from "crypto";
-
+import bcrypt from "bcryptjs";
 import { Server as SocketIOServer } from "socket.io";
 import mongoose from "mongoose";
+import { User } from "../models/user.model";
+import asyncHandler from "../utils/asyncHandeler";
+import { generateAccessToken } from "../utils/generateTokens";
+import { AuthRequest } from "../middlewares/auth.middleware";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -119,7 +123,7 @@ export const getFirefighterById = async (
 };
 
 export const createFirefighter = async (
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
@@ -128,7 +132,6 @@ export const createFirefighter = async (
     if (!errors.isEmpty()) {
       return next(new AppError("Validation failed", 400, errors.array()));
     }
-
 
     const {
       name,
@@ -178,8 +181,10 @@ export const createFirefighter = async (
     await firefighter.save();
 
     // Send password reset email
-    const resetUrl = `${req.protocol}://${req.get("host")}/reset-password?token=${resetToken}&email=${email}&type=firefighter`;
-    
+    const resetUrl = `${req.protocol}://${req.get(
+      "host"
+    )}/reset-password?token=${resetToken}&email=${email}&type=firefighter`;
+
     try {
       await sendCode(email, resetUrl, maileType.FIREFIGHTER_PASSWORD_RESET);
     } catch (emailError) {
@@ -351,7 +356,7 @@ export const resetFirefighterPassword = async (
     }
 
     // Hash the new password
-    const bcrypt = require("bcryptjs");
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Update firefighter password and clear reset token
@@ -402,8 +407,10 @@ export const sendFirefighterPasswordReset = async (
     await firefighter.save();
 
     // Send password reset email
-    const resetUrl = `${req.protocol}://${req.get("host")}/reset-password?token=${resetToken}&email=${email}&type=firefighter`;
-    
+    const resetUrl = `${req.protocol}://${req.get(
+      "host"
+    )}/reset-password?token=${resetToken}&email=${email}&type=firefighter`;
+
     try {
       await sendCode(email, resetUrl, maileType.FIREFIGHTER_PASSWORD_RESET);
     } catch (emailError) {
@@ -419,3 +426,161 @@ export const sendFirefighterPasswordReset = async (
     next(error);
   }
 };
+
+// Firefighter login for mobile app
+export const loginFirefighter = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      throw new AppError("Email and password are required", 400);
+    }
+
+    // Find firefighter by email
+    const firefighter = await Firefighter.findOne({ email }).select(
+      "+password"
+    );
+
+    if (!firefighter) {
+      throw new AppError("Invalid credentials", 401);
+    }
+
+    // Check if password is set
+    if (!firefighter.password) {
+      throw new AppError(
+        "Password not set. Please use password reset first.",
+        401
+      );
+    }
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      firefighter.password
+    );
+    if (!isPasswordValid) {
+      throw new AppError("Invalid credentials", 401);
+    }
+
+    // Check if firefighter is active
+    if (!firefighter.isActive) {
+      throw new AppError("Account is deactivated", 401);
+    }
+
+    const ff = {
+      username: firefighter.name,
+      email,
+      type: "user",
+      isVerified: true,
+    };
+    // Generate token
+    const token = generateAccessToken(ff as any);
+
+    // Remove password from response
+    firefighter.password = undefined;
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      data: {
+        user: firefighter,
+        token,
+      },
+    });
+  }
+);
+
+// Get firefighter profile
+export const getFirefighterProfile = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const firefighterId = req.user?.id;
+
+    const firefighter = await User.findById(firefighterId);
+    if (!firefighter) {
+      throw new AppError("Firefighter not found", 404);
+    }
+
+    res.status(200).json({
+      success: true,
+      data: firefighter,
+    });
+  }
+);
+
+// Update firefighter profile
+export const updateFirefighterProfile = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const firefighterId = req.user?.id;
+    const { name, contact, address, status } = req.body;
+
+    const updateData: any = {};
+    if (name) updateData.name = name;
+    if (contact) updateData.contact = contact;
+    if (address) updateData.address = address;
+    if (status) updateData.status = status;
+
+    const firefighter = await User.findByIdAndUpdate(
+      firefighterId,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!firefighter) {
+      throw new AppError("Firefighter not found", 404);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: firefighter,
+    });
+  }
+);
+
+// Change password
+export const changePassword = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const firefighterId = req.user?.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      throw new AppError("Current password and new password are required", 400);
+    }
+
+    const firefighter = await User.findById(firefighterId).select("+password");
+    if (!firefighter) {
+      throw new AppError("Firefighter not found", 404);
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      firefighter.password
+    );
+
+    if (!isCurrentPasswordValid) {
+      throw new AppError("Current password is incorrect", 401);
+    }
+
+    // Update password
+    firefighter.password = newPassword;
+    await firefighter.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  }
+);
+
+// Logout firefighter
+export const logoutFirefighter = asyncHandler(
+  async (req: Request, res: Response) => {
+    // In a real implementation, you might want to blacklist the token
+    // For now, we'll just return a success response
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  }
+);
