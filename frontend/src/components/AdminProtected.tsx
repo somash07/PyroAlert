@@ -9,7 +9,8 @@ const AdminProtected = ({ children }: ProtectedProps) => {
   const token = localStorage.getItem("token");
   const { user } = useSelector((state: any) => state.auth);
 
-  if (!token && user.type !== "Admin") {
+  if (!token || user?.type !== "Admin") {
+    console.log(user)
     return <Navigate to="/admin/login" replace />;
   }
 
