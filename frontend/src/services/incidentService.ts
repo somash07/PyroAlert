@@ -4,7 +4,7 @@ export const createAlert = (data: any) => API.post("/api/v1/alert", data);
 
 export const fetchActiveIncidents = () => API.get("/api/v1/alert/active");
 
-export const fetchPendingIncidents = () => API.get("/api/v1/alert/pending");
+export const fetchPendingIncidents = (department_id: string) => API.get(`/api/v1/alert/pending/${department_id}`);
 
 export const assignFirefighters = (id: string, firefighterIds: string[]) =>
   API.patch(`/api/v1/alert/${id}/assign`, { firefighterIds });

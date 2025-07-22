@@ -22,7 +22,7 @@ router.post("/", createAlert);
 router.get("/active", getActiveIncidents);
 
 // GET: Fetch incidents pending response, optionally filtered by department
-router.get("/pending", getPendingIncidents);
+router.get("/pending/:department_id", getPendingIncidents);
 
 // GET: Fetch the most recent incidents (limit 50)
 router.get("/all", getAllIncidents);

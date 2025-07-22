@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { io, Socket } from "socket.io-client";
-import { toast } from "sonner"
+import { toast } from "sonner";
 import RecentAlertCard from "./components/RecentAlertCard";
 import PendingRequestCard from "./components/PendingRequestCard";
 import StatCard from "./components/StatCard";
@@ -54,10 +54,13 @@ const Dashboard: React.FC = () => {
   });
 
   useEffect(() => {
+  if (storedDepartmentId) {
     dispatch(loadActiveIncidents());
-    dispatch(loadPendingIncidents());
+    dispatch(loadPendingIncidents(storedDepartmentId));
     dispatch(fetchFirefightersByDepartment(storedDepartmentId));
-  }, [dispatch, storedDepartmentId]);
+  }
+}, [dispatch, storedDepartmentId]);
+
 
   useEffect(() => {
     const merged = [...pendingRequests, ...activeIncidents].slice(0, 5);
@@ -90,25 +93,25 @@ const Dashboard: React.FC = () => {
           ).toFixed(0)}%)`
         );
       }
-      dispatch(loadPendingIncidents());
+      dispatch(loadPendingIncidents(storedDepartmentId));
     });
 
     socket.on("INCIDENT_ACCEPTED", (incident: Incident) => {
       toast.success(
         `Incident from ${incident.additional_info?.device_name} has been accepted by ${storedUsername}`
       );
-      dispatch(loadPendingIncidents());
+      dispatch(loadPendingIncidents(storedDepartmentId));
       dispatch(loadActiveIncidents());
     });
 
     socket.on("INCIDENT_REASSIGNED", (incident: Incident) => {
       toast(`Incident reassigned `);
-      dispatch(loadPendingIncidents());
+      dispatch(loadPendingIncidents(storedDepartmentId));
     });
 
     socket.on("INCIDENT_UNASSIGNED", () => {
       toast("Incident unassigned - manual intervention required");
-      dispatch(loadPendingIncidents());
+      dispatch(loadPendingIncidents(storedDepartmentId));
     });
 
     return () => {
@@ -177,7 +180,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {pendingRequests.length > 0 && (
-        <div className="bg-orange-50 p-6 border-2 border-orange-200">
+        <div className="bg-orange-50 p-6 border-2 border-orange-200 rounded-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-orange-800 flex items-center">
               <AlertTriangle className="w-5 h-5 mr-2" />
@@ -185,7 +188,7 @@ const Dashboard: React.FC = () => {
             </h2>
           </div>
 
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {pendingRequests.map((incident) => (
               <PendingRequestCard
                 key={incident._id}
@@ -254,7 +257,7 @@ const Dashboard: React.FC = () => {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-              className="bg-red-500 hover:bg-red-600"
+                className="bg-red-500 hover:bg-red-600"
                 onClick={() => {
                   if (!rejectionReason.trim()) {
                     toast("Reason cannot be empty");
