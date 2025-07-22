@@ -10,6 +10,11 @@ import {
   getFirefightersByDepartment,
   resetFirefighterPassword,
   sendFirefighterPasswordReset,
+  loginFirefighter,
+  getFirefighterProfile,
+  updateFirefighterProfile,
+  changePassword,
+  logoutFirefighter,
 } from "../controllers/firefighter.controller";
 import mongoose from "mongoose";
 import { AppError } from "../utils/AppError";
@@ -63,7 +68,7 @@ router.get("/available", getAvailableFirefighters);
 router.get("/:id", validateObjectId, getFirefighterById);
 
 // Create new firefighter
-router.post("/", upload.single("image"),createFirefighter);
+router.post("/", upload.single("image"), createFirefighter);
 
 // Update firefighter
 router.patch("/:id", validateObjectId, updateFirefighter);
@@ -86,5 +91,12 @@ router.delete("/:id", validateObjectId, deleteFirefighter);
 // Password reset routes
 router.post("/reset-password", resetFirefighterPassword);
 router.post("/send-reset-email", sendFirefighterPasswordReset);
+
+// Mobile app routes
+router.post("/login", loginFirefighter);
+router.get("/me", authenticateWithJwt, getFirefighterProfile);
+router.patch("/profile", authenticateWithJwt, updateFirefighterProfile);
+router.patch("/change-password", authenticateWithJwt, changePassword);
+router.post("/logout", authenticateWithJwt, logoutFirefighter);
 
 export { router as fireFighterRoute };
