@@ -11,14 +11,17 @@
 #include "esp_http_client.h"
 #include "driver/adc.h"
 #include "driver/gpio.h"
+#include "esp_sntp.h" //added
 
 #define WIFI_SSID       "imyogen_2"
 #define WIFI_PASS       "imyogen@123456"
 #define API_URL         "http://192.168.1.68:8080/api/v1/alert"
 #define FLAME_GPIO      GPIO_NUM_6
 #define SMOKE_ADC_CH    ADC1_CHANNEL_1
-#define SMOKE_THRESHOLD 1500
+#define SMOKE_THRESHOLD 600
 #define DEVICE_NAME     "ESP32 Fire Monitor"
+#define ALERT_INTERVAL_MS 5000  // 5 seconds
+static time_t last_alert_time = 0;
 
 static const char *TAG = "FIRE_DETECT";
 bool alert_sent = false;
@@ -58,6 +61,33 @@ static void wifi_init(void) {
     ESP_LOGI(TAG, "Wi-Fi initialized");
 }
 
+void initialize_sntp(void) {
+    ESP_LOGI(TAG, "Initializing SNTP...");
+    esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
+    esp_sntp_setservername(0, "pool.ntp.org");  // You can also use a local NTP server
+    esp_sntp_init();
+
+    // Wait until time is set
+    time_t now = 0;
+    struct tm timeinfo = {0};
+    int retry = 0;
+    const int retry_count = 10;
+
+    while (timeinfo.tm_year < (2020 - 1900) && ++retry < retry_count) {
+        ESP_LOGI(TAG, "Waiting for system time to be set... (%d/%d)", retry, retry_count);
+        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        time(&now);
+        localtime_r(&now, &timeinfo);
+    }
+
+    if (timeinfo.tm_year >= (2020 - 1900)) {
+        ESP_LOGI(TAG, "System time is set.");
+    } else {
+        ESP_LOGW(TAG, "Failed to get time from SNTP.");
+    }
+}
+
+
 // Sending JSON alert to backend
 static void send_fire_alert_http(void) {
     time_t now = time(NULL);
@@ -70,7 +100,7 @@ static void send_fire_alert_http(void) {
         "\"timestamp\": %lld,"
         "\"confidence\": %.2f,"
         "\"source_device_id\": \"esp32-c6-001\","
-        "\"geo_location\": {\"type\": \"Point\", \"coordinates\": [85.3586979, 27.6505772]},"
+        "\"geo_location\": {\"type\": \"Point\", \"coordinates\": [85.345002, 27.6499376]},"
         "\"additional_info\": {"
             "\"camera_id\": \"camera_001\","
             "\"detection_method\": \"MQ2 + Flame\","
@@ -108,6 +138,9 @@ extern "C" void app_main(void) {
     ESP_ERROR_CHECK(nvs_flash_init());
     wifi_init();
 
+    // ✅ Initialize SNTP time sync
+    initialize_sntp();
+
     // Flame sensor setup
     gpio_set_direction(FLAME_GPIO, GPIO_MODE_INPUT);
 
@@ -120,14 +153,17 @@ extern "C" void app_main(void) {
         int flame_val = gpio_get_level(FLAME_GPIO); // 0 = flame detected
 
         ESP_LOGI(TAG, "Smoke: %d | Flame: %s", smoke_val, flame_val == 0 ? "🔥 YES" : "✅ NO");
+        time_t now = time(NULL);
 
-        if ((flame_val == 0 && smoke_val > SMOKE_THRESHOLD) && !alert_sent) {
-            ESP_LOGW(TAG, "🔥 FIRE DETECTED!");
-            send_fire_alert_http();
-            alert_sent = true;
-        } else if (flame_val == 1 && smoke_val < SMOKE_THRESHOLD) {
-            alert_sent = false;
-        }
+       if (flame_val == 0 && smoke_val > SMOKE_THRESHOLD) {
+    if ((now - last_alert_time) >= 5) {
+        ESP_LOGW(TAG, "🔥 FIRE DETECTED! Flame: %d, Smoke: %d", flame_val, smoke_val);
+        send_fire_alert_http();  // send to your backend
+        last_alert_time = now;
+    }
+} else {
+    last_alert_time = 0;  // Reset timer if condition breaks
+}
 
         vTaskDelay(pdMS_TO_TICKS(2000));
     }

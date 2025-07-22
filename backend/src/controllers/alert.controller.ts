@@ -212,17 +212,19 @@ export const respondToIncident = async (
       .populate("requested_department nearby_departments.department")
       .exec()) as any;
 
-    if (!incident)   res.status(404).json({ message: "Incident not found" });
-    
+    if (!incident) res.status(404).json({ message: "Incident not found" });
 
-    if (incident.status !== "pending_response") res.status(400).json({ message: "Incident is not pending response" });
+    if (incident.status !== "pending_response")
+      res.status(400).json({ message: "Incident is not pending response" });
 
     if (action === "accept") {
-      // Fire department accepts the 
-      
+      // Fire department accepts the
+
       incident.status = "acknowledged";
-      console.log(department_id as string)
-      incident.assigned_department = new mongoose.Types.ObjectId(department_id as string);
+      console.log(department_id as string);
+      incident.assigned_department = new mongoose.Types.ObjectId(
+        department_id as string
+      );
       incident.response_time = new Date();
       incident.notes = notes || "Incident accepted by fire department";
 
@@ -240,7 +242,7 @@ export const respondToIncident = async (
       });
     } else {
       // Fire department rejects the incident
-      
+
       // Try to assign to next nearest department
       const nearbyDepts = incident.nearby_departments || [];
       const currentDeptIndex = nearbyDepts.findIndex(
@@ -262,7 +264,10 @@ export const respondToIncident = async (
         });
 
         await incident.save();
-        await incident.populate("requested_department", "username address contact");
+        await incident.populate(
+          "requested_department",
+          "username address contact"
+        );
 
         broadcastMessage("INCIDENT_REASSIGNED", {
           ...incident.toObject(),
@@ -303,22 +308,23 @@ export const respondToIncident = async (
     }
   } catch (error: any) {
     console.error("Error responding to incident:", error);
-    res
-      .status(500)
-      .json({
-        message: "Server error responding to incident",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Server error responding to incident",
+      error: error.message,
+    });
   }
 };
-
 
 export const getPendingIncidents = async (req: Request, res: Response) => {
   try {
     const { department_id } = req.params;
 
     const query: any = { status: "pending_response" };
-    if (department_id && typeof department_id === "string" && mongoose.Types.ObjectId.isValid(department_id)) {
+    if (
+      department_id &&
+      typeof department_id === "string" &&
+      mongoose.Types.ObjectId.isValid(department_id)
+    ) {
       query.requested_department = new mongoose.Types.ObjectId(department_id);
     }
 
@@ -335,7 +341,6 @@ export const getPendingIncidents = async (req: Request, res: Response) => {
     });
   }
 };
-
 
 export const getActiveIncidents = async (req: Request, res: Response) => {
   try {
@@ -473,7 +478,8 @@ export const confirmAndDispatch = async (
 ) => {
   try {
     const incident = await Incident.findById(req.params.id).populate(
-      "assigned_firefighters", "name email contact"
+      "assigned_firefighters",
+      "name email contact"
     );
 
     if (!incident) {
