@@ -1,3 +1,4 @@
+import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 
 interface ProtectedProps {
@@ -6,8 +7,9 @@ interface ProtectedProps {
 
 const AdminProtected = ({ children }: ProtectedProps) => {
   const token = localStorage.getItem("token");
+  const { user } = useSelector((state: any) => state.auth);
 
-  if (!token) {
+  if (!token && user.type !== "Admin") {
     return <Navigate to="/admin/login" replace />;
   }
 
