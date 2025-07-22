@@ -64,10 +64,10 @@ export default function Login() {
       toast.success("Login successful");
       navigate("/dashboard");
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message ||
-          "Something went wrong. Please try again."
-      );
+      // toast.error(
+      //   error.response?.data?.message ||
+      //     "Something went wrong. Please try again."
+      // );
     } finally {
       setIsLoading(false);
     }

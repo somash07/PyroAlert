@@ -83,7 +83,7 @@ function Signup() {
     <>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col h-auto p-9 space-y-4 justify-center "
+        className="flex flex-col h-full p-9 space-y-4 overflow-y-auto-auto "
       >
         <div className="space-y-3 flex flex-col items-center">
           <h2 className="text-center font-semibold text-orange-400 text-2xl font-bitter">

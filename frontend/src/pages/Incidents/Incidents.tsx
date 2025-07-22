@@ -75,9 +75,6 @@ const Incidents: React.FC = () => {
   return (
     <div className="p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-2 sm:space-y-0">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Active Incidents
-        </h1>
         <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
           <div className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium text-center">
             {active.length} Active

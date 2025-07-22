@@ -21,7 +21,7 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import FireStationDashboardLayout from "./layouts/FireStationDashboardLayout/FireStationDashboardLayout.tsx";
 import { Provider } from "react-redux";
 import { store } from "./store/store.ts";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "@/components/ui/sonner"
 import AdminLogin from "./pages/admin/AdminLogin.tsx";
 import AdminLayout from "./pages/admin/AdminLayout.tsx";
 import System from "./pages/admin/system/index.tsx";
@@ -143,7 +143,7 @@ const router = createBrowserRouter([
 ]);
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
-    <Toaster position="bottom-right" />
+    <Toaster position="top-center" />
     <RouterProvider router={router} />
   </Provider>
 );

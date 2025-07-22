@@ -46,6 +46,7 @@ export const updateFirefighter = createAsyncThunk(
     email: string;
     contact: string;
     departmentId: string;
+    image?: string;
   }) => {
     const response = await firefighterService.updateFirefighter(
       firefighter._id,

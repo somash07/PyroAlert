@@ -40,11 +40,11 @@ const AssignFirefightersModal: React.FC<AssignFirefightersModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
       <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center p-4 sm:p-6 border-b">
-          <h2 className="text-lg sm:text-xl font-semibold">Assign Firefighters</h2>
+          <h2 className="text-lg sm:text-xl font-semibold ">Assign Firefighters</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-1">
             <XMarkIcon className="h-6 w-6" />
           </button>
