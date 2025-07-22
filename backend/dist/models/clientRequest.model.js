@@ -48,4 +48,4 @@ const ClientRequestSchema = new mongoose_1.Schema({
 }, {
     timestamps: { createdAt: true, updatedAt: false },
 });
-// exports.ClientRequest = mongoose_1.default.model("ClientRequest", ClientRequestSchema);
+exports.ClientRequest = mongoose_1.default.model("ClientRequest", ClientRequestSchema);
