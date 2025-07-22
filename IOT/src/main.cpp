@@ -12,9 +12,9 @@
 #include "driver/adc.h"
 #include "driver/gpio.h"
 
-#define WIFI_SSID       "He@vens_home_03"
-#define WIFI_PASS       "CLB27F8D4F"
-#define API_URL         "http://192.168.10.100:8080/api/v1/alert"
+#define WIFI_SSID       "imyogen_2"
+#define WIFI_PASS       "imyogen@123456"
+#define API_URL         "http://192.168.1.68:8080/api/v1/alert"
 #define FLAME_GPIO      GPIO_NUM_6
 #define SMOKE_ADC_CH    ADC1_CHANNEL_1
 #define SMOKE_THRESHOLD 1500
@@ -70,7 +70,7 @@ static void send_fire_alert_http(void) {
         "\"timestamp\": %lld,"
         "\"confidence\": %.2f,"
         "\"source_device_id\": \"esp32-c6-001\","
-        "\"geo_location\": {\"type\": \"Point\", \"coordinates\": [85.345002, 27.6499376]},"
+        "\"geo_location\": {\"type\": \"Point\", \"coordinates\": [85.3586979, 27.6505772]},"
         "\"additional_info\": {"
             "\"camera_id\": \"camera_001\","
             "\"detection_method\": \"MQ2 + Flame\","
@@ -132,6 +132,3 @@ extern "C" void app_main(void) {
         vTaskDelay(pdMS_TO_TICKS(2000));
     }
 }
-
-
-
