@@ -43,7 +43,9 @@ const Dashboard: React.FC = () => {
   const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
   const storedUsername = storedUser ? JSON.parse(storedUser)?.username : "";
 
-  console.log(storedDepartmentId);
+  // console.log(storedDepartmentId);
+
+  const audio = new Audio("/sound/alert.mp3");
 
   const [stats, setStats] = useState({
     activeIncidents: 0,
@@ -54,13 +56,12 @@ const Dashboard: React.FC = () => {
   });
 
   useEffect(() => {
-  if (storedDepartmentId) {
-    dispatch(loadActiveIncidents());
-    dispatch(loadPendingIncidents(storedDepartmentId));
-    dispatch(fetchFirefightersByDepartment(storedDepartmentId));
-  }
-}, [dispatch, storedDepartmentId]);
-
+    if (storedDepartmentId) {
+      dispatch(loadActiveIncidents());
+      dispatch(loadPendingIncidents(storedDepartmentId));
+      dispatch(fetchFirefightersByDepartment(storedDepartmentId));
+    }
+  }, [dispatch, storedDepartmentId]);
 
   useEffect(() => {
     const merged = [...pendingRequests, ...activeIncidents].slice(0, 5);
@@ -84,9 +85,12 @@ const Dashboard: React.FC = () => {
     const socket: Socket = io("http://localhost:8080");
 
     socket.on("NEW_INCIDENT_REQUEST", (incident: Incident) => {
-      console.log(incident);
+      // console.log(incident);
 
       if (incident.requested_department?._id === storedDepartmentId) {
+        audio.play().catch((error) => {
+          console.error("Failed to play sound:", error);
+        });
         toast(
           `🚨 New ${incident.alert_type} at ${incident.location} (${(
             incident.confidence * 100

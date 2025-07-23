@@ -186,8 +186,16 @@ const AddFirefighter: React.FC = () => {
   return (
     <div>
       {/* header buttons */}
-      <div className="mb-6 flex gap-5">
-        <button
+      <div className="mb-6 flex gap-3 items-center w-full">
+        {/* Search input */}
+        <input
+          type="text"
+          placeholder="Search name, email, or number"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full sm:w-80 px-3 py-2 border border-gray-300 text-sm rounded-md focus:outline-none"
+        />
+        <Button
           onClick={() => {
             setShowForm(!showForm);
             setPreviewUrl(null);
@@ -196,25 +204,14 @@ const AddFirefighter: React.FC = () => {
         >
           <PlusIcon className="mr-2 h-5 w-5" />
           Add New Firefighter
-        </button>
-        <Button
-          className="bg-green-600 hover:bg-green-700"
+        </Button>
+
+        <RefreshCcw
+          className="mr-2 h-4 w-4 hover:cursor-pointer hover:text-green-600 ml-auto"
           onClick={async () => {
             await dispatch(fetchFirefightersByDepartment(storedDepartmentId));
             toast.success("Refreshed");
           }}
-        >
-          <RefreshCcw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
-
-        {/* Search input */}
-        <input
-          type="text"
-          placeholder="Search name, email, or number"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full sm:w-80 px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
         />
       </div>
 
@@ -521,5 +518,3 @@ const Modal: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 export default AddFirefighter;
-
-

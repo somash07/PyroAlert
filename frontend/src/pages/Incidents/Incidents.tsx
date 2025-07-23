@@ -90,7 +90,6 @@ const Incidents: React.FC = () => {
       <div className="space-y-4">
         {active.length === 0 ? (
           <div className="text-center py-8 sm:py-12">
-            <div className="text-4xl sm:text-6xl mb-4">🔥</div>
             <p className="text-gray-500 text-base sm:text-lg">
               No active incidents at the moment
             </p>
@@ -98,7 +97,7 @@ const Incidents: React.FC = () => {
               System is monitoring for fire emergencies
             </p>
             <div className="mt-4 text-xs sm:text-sm text-gray-400">
-              🔌 Real-time monitoring active • 🤖 AI detection enabled
+              Real-time monitoring active
             </div>
           </div>
         ) : (
