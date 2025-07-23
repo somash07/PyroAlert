@@ -18,10 +18,8 @@
 #define API_URL         "http://192.168.1.68:8080/api/v1/alert"
 #define FLAME_GPIO      GPIO_NUM_6
 #define SMOKE_ADC_CH    ADC1_CHANNEL_1
-#define SMOKE_THRESHOLD 600
+#define SMOKE_THRESHOLD 1500
 #define DEVICE_NAME     "ESP32 Fire Monitor"
-#define ALERT_INTERVAL_MS 5000  // 5 seconds
-static time_t last_alert_time = 0;
 
 static const char *TAG = "FIRE_DETECT";
 bool alert_sent = false;
@@ -148,23 +146,41 @@ extern "C" void app_main(void) {
     adc1_config_width(ADC_WIDTH_BIT_12);
     adc1_config_channel_atten(SMOKE_ADC_CH, ADC_ATTEN_DB_11);
 
-    while (true) {
+   while (true) {
         int smoke_val = adc1_get_raw(SMOKE_ADC_CH);
         int flame_val = gpio_get_level(FLAME_GPIO); // 0 = flame detected
 
         ESP_LOGI(TAG, "Smoke: %d | Flame: %s", smoke_val, flame_val == 0 ? "🔥 YES" : "✅ NO");
+
+        static time_t detection_start_time = 0;
+        static bool waiting_for_cooldown = false;
+
+        bool smoke_detected = smoke_val > SMOKE_THRESHOLD;
+        bool flame_detected = flame_val == 0;
         time_t now = time(NULL);
 
-       if (flame_val == 0 && smoke_val > SMOKE_THRESHOLD) {
-    if ((now - last_alert_time) >= 5) {
-        ESP_LOGW(TAG, "🔥 FIRE DETECTED! Flame: %d, Smoke: %d", flame_val, smoke_val);
-        send_fire_alert_http();  // send to your backend
-        last_alert_time = now;
-    }
-} else {
-    last_alert_time = 0;  // Reset timer if condition breaks
-}
+        if (smoke_detected && flame_detected) {
+            if (detection_start_time == 0) {
+                detection_start_time = now;
+                ESP_LOGI(TAG, "Both sensors detected fire, starting timer...");
+            }
 
-        vTaskDelay(pdMS_TO_TICKS(2000));
+            // If both sensors are true for 6 seconds
+            if ((now - detection_start_time) >= 6 && !waiting_for_cooldown) {
+                ESP_LOGW(TAG, "🔥🔥🔥 FIRE CONFIRMED for 6 seconds! Sending alert.");
+                send_fire_alert_http();
+                waiting_for_cooldown = true; // Block repeated alerts
+            }
+
+        } else {
+            // Reset if either one is false
+            if (detection_start_time != 0) {
+                ESP_LOGI(TAG, "Detection interrupted. Resetting timer.");
+            }
+            detection_start_time = 0;
+            waiting_for_cooldown = false;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(1000));  // check every second
     }
 }
