@@ -147,7 +147,7 @@ export const createAlert = async (
     await incident.save();
 
     // Populate the assigned department for the response
-    await incident.populate("requested_department", "name address contact");
+    await incident.populate("requested_department", "username address contact");
 
     // Broadcast to connected clients with department info
     const broadcastData = {
@@ -209,7 +209,10 @@ export const respondToIncident = async (
     }
 
     const incident = (await Incident.findById(id)
-      .populate("requested_department nearby_departments.department")
+      .populate(
+        "requested_department nearby_departments.department rejection_history.department",
+        "username"
+      )
       .exec()) as any;
 
     if (!incident) res.status(404).json({ message: "Incident not found" });
@@ -329,7 +332,8 @@ export const getPendingIncidents = async (req: Request, res: Response) => {
     }
 
     const incidents = await Incident.find(query)
-      .populate("requested_department", "username address contact")
+      .populate("requested_department rejection_history.department", "username address contact")
+      .populate("nearby_departments.department", "username")  
       .sort({ timestamp: -1 });
 
     res.status(200).json(incidents);
@@ -344,7 +348,7 @@ export const getPendingIncidents = async (req: Request, res: Response) => {
 
 export const getActiveIncidents = async (req: Request, res: Response) => {
   try {
-    const activeStatuses = ["in_progress", "acknowledged", "assigned"];
+    const activeStatuses = ["in_progress", "acknowledged", "assigned", "dispatched"];
     const incidents = await Incident.find({ status: { $in: activeStatuses } })
       .populate("assigned_department", "username address contact")
       .sort({ timestamp: -1 });
@@ -361,7 +365,8 @@ export const getActiveIncidents = async (req: Request, res: Response) => {
 export const getAllIncidents = async (req: Request, res: Response) => {
   try {
     const incidents = await Incident.find()
-      .populate("assigned_department", "name address contact")
+      .populate("assigned_department ", "username address contact")
+      .populate("rejection_history.department", "username")
       .sort({ timestamp: -1 })
       .limit(50); // Limit to last 50 incidents
     res.status(200).json(incidents);
@@ -388,14 +393,14 @@ export const updateIncidentStatus = async (
       { new: true }
     ).populate(
       "assigned_department requested_department",
-      "name address contact"
+      "username address contact"
     );
 
     if (!incident) {
       res.status(404).json({ message: "Incident not found" });
     }
 
-    broadcastMessage("INCIDENT_UPDATED", incident?.toObject());
+    // broadcastMessage("INCIDENT_UPDATED", incident?.toObject());
     res
       .status(200)
       .json({ message: "Incident updated successfully", data: incident });
@@ -479,7 +484,7 @@ export const confirmAndDispatch = async (
   try {
     const incident = await Incident.findById(req.params.id).populate(
       "assigned_firefighters",
-      "name email contact"
+      "username email contact"
     );
 
     if (!incident) {

@@ -207,7 +207,7 @@ const AddFirefighter: React.FC = () => {
         </Button>
 
         <RefreshCcw
-          className="mr-2 h-4 w-4 hover:cursor-pointer hover:text-green-600 ml-auto"
+          className="mr-2 h-4 w-4 hover:cursor-pointer text-green-600 ml-auto"
           onClick={async () => {
             await dispatch(fetchFirefightersByDepartment(storedDepartmentId));
             toast.success("Refreshed");
@@ -417,6 +417,7 @@ const AddFirefighter: React.FC = () => {
                         )}
                       </button>
                     </AlertDialogTrigger>
+                    
                     <AlertDialogContent className="sm:max-w-[425px]">
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete firefighter?</AlertDialogTitle>

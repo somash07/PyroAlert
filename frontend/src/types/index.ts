@@ -138,14 +138,14 @@ export interface Incident {
   nearby_departments?: Array<{
     department: {
       _id: string;
-      name: string;
+      username: string;
     };
     distance: number;
   }>;
   rejection_history?: Array<{
     department: {
       _id: string;
-      name: string;
+      username: string;
     };
     reason: string;
     timestamp: string;

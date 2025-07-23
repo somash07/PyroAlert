@@ -1,9 +1,7 @@
+import type { Incident } from "@/types";
 import { MapPin } from "lucide-react";
-import type { Incident } from "../Dashboard";
 
 const RecentAlertCard: React.FC<{ incident: Incident }> = ({ incident }) => {
-  const getAlertIcon = (type: string) => (type === "fire" ? "🔥" : "💨");
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending_response":
@@ -26,12 +24,9 @@ const RecentAlertCard: React.FC<{ incident: Incident }> = ({ incident }) => {
   };
 
   return (
-    <div className="p-4 border rounded-lg bg-white hover:shadow-md transition-shadow">
+    <div className="p-4 shadow-md rounded-lg bg-stone-50 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-center">
-          <span className="text-lg mr-2">
-            {getAlertIcon(incident.alert_type)}
-          </span>
           <div>
             <h4 className="font-semibold text-gray-800">
               {incident.alert_type === "fire"
@@ -39,7 +34,7 @@ const RecentAlertCard: React.FC<{ incident: Incident }> = ({ incident }) => {
                 : "Smoke Detected"}
             </h4>
             <p className="text-sm text-gray-600 flex items-center">
-              <MapPin className="w-3 h-3 mr-1" />
+              <MapPin className="w-3 h-3 mr-1 text-blue-500" />
               {incident.location}
             </p>
           </div>
@@ -53,19 +48,26 @@ const RecentAlertCard: React.FC<{ incident: Incident }> = ({ incident }) => {
         </span>
       </div>
 
-      <div className="text-xs text-gray-500 space-y-1">
-        <p>Confidence: {(incident.confidence * 100).toFixed(0)}%</p>
-        <p>Time: {new Date(incident.timestamp).toLocaleString()}</p>
+      <div className="text-xs text-gray-600 space-y-1">
+        <p>
+          <b>Time: </b>
+          {new Date(incident.timestamp).toLocaleString()}
+        </p>
         {incident.assigned_department && (
-          <p>Assigned to: {incident.assigned_department.name}</p>
+          <p>
+            <b>Assigned to: </b>
+            {incident.assigned_department.username}
+          </p>
         )}
         {incident.requested_department && !incident.assigned_department && (
-          <p>Requested from: {incident.requested_department.username}</p>
+          <p>
+            <b>Requested from: </b>{" "}
+            {incident.requested_department.username}
+          </p>
         )}
       </div>
     </div>
   );
 };
 
-
-export default RecentAlertCard
+export default RecentAlertCard;

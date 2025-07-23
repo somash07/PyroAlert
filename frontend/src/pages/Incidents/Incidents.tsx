@@ -103,7 +103,7 @@ const Incidents: React.FC = () => {
         ) : (
           <>
             {/* Show newest incidents first */}
-            {[...active]
+            {[...active, ...pending]
               .filter((incident) => {
                 const dept = incident.assigned_department;
                 return (

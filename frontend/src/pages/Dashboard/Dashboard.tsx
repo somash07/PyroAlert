@@ -28,6 +28,7 @@ import { store, type AppDispatch, type RootState } from "@/store/store";
 import type { Incident } from "@/types";
 import { fetchFirefightersByDepartment } from "@/store/slices/firefighterSlice";
 
+
 const Dashboard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const pendingRequests = useSelector(selectPendingIncidents);
@@ -65,11 +66,16 @@ const Dashboard: React.FC = () => {
 
 
   useEffect(() => {
-    const merged = [...pendingRequests, ...activeIncidents].slice(0, 5);
-    setRecentIncidents(merged);
+    const filtered = [...pendingRequests, ...activeIncidents].filter(
+  (incident) =>
+    incident.requested_department?._id === storedDepartmentId ||
+    incident.assigned_department?._id === storedDepartmentId
+);
+
+    setRecentIncidents(filtered);
 
     const today = new Date().toDateString();
-    const todayIncidents = merged.filter(
+    const todayIncidents = filtered.filter(
       (i) => new Date(i.timestamp).toDateString() === today
     );
 
@@ -80,7 +86,7 @@ const Dashboard: React.FC = () => {
       pendingRequests: pendingRequests.length,
       incidentsToday: todayIncidents.length,
     }));
-  }, [pendingRequests, activeIncidents, firefighters]);
+  }, [pendingRequests, activeIncidents, firefighters, storedDepartmentId]);
 
   useEffect(() => {
     const socket: Socket = io("http://localhost:8080");
@@ -128,6 +134,8 @@ const Dashboard: React.FC = () => {
     dispatch(
       respondToIncidentThunk({ id: id, departmentId: deptId, action: "accept" })
     );
+    // navigate("/")
+    
   };
 
   const handleReject = (id: string, deptId: string) => {
@@ -185,15 +193,15 @@ const Dashboard: React.FC = () => {
       </div>
 
       {pendingRequests.length > 0 && (
-        <div className=" bg-orange-50 p-6 border-2">
+        <div className=" bg-white p-6 m-4 ">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-orange-800 flex items-center">
-              <AlertTriangle className="w-5 h-5 mr-2" />
-              Pending Incident Requests ({pendingRequests.length})
+            <h2 className="text-xl font-semibold flex items-center">
+              <AlertTriangle className="w-5 h-5 mr-2 text-orange-400" />
+              Pending Incident Request Nearby({pendingRequests.length})
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {pendingRequests.map((incident) => (
               <PendingRequestCard
                 key={incident._id}
@@ -216,7 +224,7 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white p-6 rounded-lg shadow">
+      <div className="bg-white p-6 ">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-700">Recent Alerts</h2>
         </div>

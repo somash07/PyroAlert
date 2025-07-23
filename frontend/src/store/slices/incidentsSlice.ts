@@ -17,6 +17,7 @@ import {
 import type { Incident } from "@/types";
 
 interface IncidentsState {
+  incidents:Incident[],
   active: Incident[];
   pending: Incident[];
   loading: boolean;
@@ -25,6 +26,7 @@ interface IncidentsState {
 }
 
 const initialState: IncidentsState = {
+  incidents: [],
   active: [],
   pending: [],
   loading: false,
@@ -176,7 +178,7 @@ const incidentSlice = createSlice({
 
 
       .addCase(loadAllIncidents.fulfilled, (state, action) => {
-        state.active = action.payload.filter(
+        state.incidents = action.payload.filter(
           (i: Incident) => i.status !== "resolved"
         );
       })

@@ -191,15 +191,13 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
         </div>
         {incident.additional_info?.device_name && (
           <div className="flex items-center">
-            <span className="text-xs text-gray-500 mr-2">Camera</span>
+            <span className="text-xs text-gray-500 mr-2">Device name  : </span>
             <p className="font-semibold text-xs sm:text-sm truncate">
-              📹 {incident.additional_info?.device_name}
+               {incident.additional_info?.device_name}
             </p>
           </div>
         )}
       </div>
-
-      
 
       {/* Action Buttons */}
       {incident.status === "pending_response" && (
@@ -239,12 +237,16 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
           <p className="text-xs sm:text-sm text-green-800 mb-2">
             Assigned to {incident.assigned_firefighters.length} firefighter(s)
           </p>
-          <button
-            onClick={() => handelConfirm(incident._id)}
-            className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
-          >
-            Confirm & Send to Location
-          </button>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => handelConfirm(incident._id)}
+              className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+            >
+              Confirm & Send to Location
+            </button>
+
+          </div>
         </div>
       )}
 

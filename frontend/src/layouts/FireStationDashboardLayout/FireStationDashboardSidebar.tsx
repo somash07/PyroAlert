@@ -55,7 +55,7 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 rounded-md bg-red-600 text-white shadow-lg hover:bg-red-700 transition-colors"
+          className="p-2 rounded-md bg-red-700 text-white shadow-lg hover:bg-red-800 transition-colors"
         >
           {isMobileMenuOpen ? (
             <XMarkIcon className="h-6 w-6" />
@@ -76,7 +76,7 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
       {/* FireStationSidebar */}
       <div
         className={`
-          fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gray-600 text-white flex flex-col
+          fixed lg:static inset-y-0 left-0 z-50 w-64 bg-red-800 text-white flex flex-col
           transform transition-transform duration-300 ease-in-out
           ${
             isMobileMenuOpen
@@ -86,7 +86,7 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
         `}
       >
         {/* Header */}
-        <div className="px-5">
+        <div className="px-3 ml-6">
          <img src="logo.png" alt="" className="w-1/2 "/>
         </div>
 
@@ -98,9 +98,9 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => handleMenuItemClick(item.id)}
-                className={`w-full flex items-center px-4 sm:px-6 py-3 text-left hover:bg-gray-400 transition-colors ${
+                className={`w-full flex items-center px-4 sm:px-6 py-3 text-left hover:bg-red-900 hover:cursor-pointer transition-colors ${
                   activeView === item.id
-                    ? "bg-gray-800 border-r-4 border-white"
+                    ? "bg-red-900 border-r-4 border-white"
                     : ""
                 }`}
               >
@@ -114,13 +114,13 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
         </nav>
 
         {/* Footer */}
-        <div className="p-4 sm:p-6 border-t-1 border-white">
+        <div className="p-4 sm:p-6">
           <div className="mb-4">
             <p className="text-sm text-white font-bold capitalize">{user?.username}</p>
           </div>
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center px-3 py-2 text-xs sm:text-sm bg-gray-800 hover:bg-gray-900 rounded transition-colors"
+            className="w-full flex items-center px-3 py-2 text-xs sm:text-sm bg-red-900 hover:cursor-pointer hover:bg-red-500 rounded transition-colors"
           >
             <ArrowRightOnRectangleIcon className="h-4 w-4 mr-2 flex-shrink-0" />
             <span className="truncate">Sign Out</span>
