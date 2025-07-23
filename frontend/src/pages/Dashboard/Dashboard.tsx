@@ -45,7 +45,7 @@ const Dashboard: React.FC = () => {
 
   // console.log(storedDepartmentId);
 
-  const audio = new Audio("/sound/alert.mp3");
+  const audio = new Audio("/alert.mp3");
 
   const [stats, setStats] = useState({
     activeIncidents: 0,
@@ -56,12 +56,13 @@ const Dashboard: React.FC = () => {
   });
 
   useEffect(() => {
-    if (storedDepartmentId) {
-      dispatch(loadActiveIncidents());
-      dispatch(loadPendingIncidents(storedDepartmentId));
-      dispatch(fetchFirefightersByDepartment(storedDepartmentId));
-    }
-  }, [dispatch, storedDepartmentId]);
+  if (storedDepartmentId) {
+    dispatch(loadActiveIncidents());
+    dispatch(loadPendingIncidents(storedDepartmentId));
+    dispatch(fetchFirefightersByDepartment(storedDepartmentId));
+  }
+}, [dispatch, storedDepartmentId]);
+
 
   useEffect(() => {
     const merged = [...pendingRequests, ...activeIncidents].slice(0, 5);
@@ -121,7 +122,7 @@ const Dashboard: React.FC = () => {
     return () => {
       socket.disconnect();
     };
-  }, [dispatch, storedUsername, storedDepartmentId]);
+  }, [dispatch, storedUsername, storedDepartmentId,audio]);
 
   const handleAccept = (id: string, deptId: string) => {
     dispatch(
@@ -184,7 +185,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {pendingRequests.length > 0 && (
-        <div className="bg-orange-50 p-6 border-2 border-orange-200 rounded-lg">
+        <div className=" bg-orange-50 p-6 border-2">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-orange-800 flex items-center">
               <AlertTriangle className="w-5 h-5 mr-2" />
