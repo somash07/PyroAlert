@@ -428,7 +428,7 @@ export const assignFirefighters = async (
   next: NextFunction
 ) => {
   try {
-    const { firefighterIds } = req.body;
+    const { firefighterIds, leaderId } = req.body;
 
     if (
       !firefighterIds ||
@@ -446,6 +446,15 @@ export const assignFirefighters = async (
 
     if (firefighters.length !== firefighterIds.length) {
       return next(new AppError("Some firefighters are not available", 400));
+    }
+
+    if (leaderId) {
+      const leader = await Firefighter.findById(leaderId);
+      if (!leader) {
+        return next(new AppError("Leader not found", 400));
+      }
+      leader.isLeader = true;
+      await leader.save();
     }
 
     const incident = await Incident.findByIdAndUpdate(

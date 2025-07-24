@@ -1,17 +1,26 @@
-
-import type React from "react"
-import { useState } from "react"
-import type { Firefighter, Incident } from "../../types"
-import { XMarkIcon } from "@heroicons/react/24/outline"
-import { loadActiveIncidents } from "@/store/slices/incidentsSlice"
-import type { AppDispatch } from "@/store/store"
-import { useDispatch } from "react-redux"
+import type React from "react";
+import { useState } from "react";
+import type { Firefighter, Incident } from "../../types";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { loadActiveIncidents } from "@/store/slices/incidentsSlice";
+import type { AppDispatch } from "@/store/store";
+import { useDispatch } from "react-redux";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import { Check } from "lucide-react";
 
 interface AssignFirefightersModalProps {
-  incident: Incident
-  firefighters: Firefighter[]
-  onAssign: (incidentId: string, firefighterIds: string[]) => void
-  onClose: () => void
+  incident: Incident;
+  firefighters: Firefighter[];
+  onAssign: (
+    incidentId: string,
+    firefighterIds: string[],
+    leaderId: string
+  ) => void;
+  onClose: () => void;
 }
 
 const AssignFirefightersModal: React.FC<AssignFirefightersModalProps> = ({
@@ -19,33 +28,43 @@ const AssignFirefightersModal: React.FC<AssignFirefightersModalProps> = ({
   firefighters,
   onAssign,
   onClose,
-
 }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const [selectedFirefighters, setSelectedFirefighters] = useState<string[]>([])
-
-  const availableFirefighters = firefighters.filter((f) => f.status === "available")
+  const [selectedFirefighters, setSelectedFirefighters] = useState<string[]>(
+    []
+  );
+  const [selectedLeader, setSelectedLeader] = useState<string | null>("");
+  const availableFirefighters = firefighters.filter(
+    (f) => f.status === "available"
+  );
 
   const handleToggleFirefighter = (firefighterId: string) => {
     setSelectedFirefighters((prev) =>
-      prev.includes(firefighterId) ? prev.filter((id) => id !== firefighterId) : [...prev, firefighterId],
-    )
-  }
+      prev.includes(firefighterId)
+        ? prev.filter((id) => id !== firefighterId)
+        : [...prev, firefighterId]
+    );
+  };
 
   const handleAssign = () => {
     if (selectedFirefighters.length > 0) {
-      onAssign(incident._id, selectedFirefighters)
-      dispatch(loadActiveIncidents())
+      onAssign(incident._id, selectedFirefighters, selectedLeader ?? "");
+      dispatch(loadActiveIncidents());
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
       <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center p-4 sm:p-6 border-b">
-          <h2 className="text-lg sm:text-xl font-semibold ">Assign Firefighters</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-1">
+          <h2 className="text-lg sm:text-xl font-semibold ">
+            Assign Firefighters
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 p-1"
+          >
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
@@ -57,7 +76,9 @@ const AssignFirefightersModal: React.FC<AssignFirefightersModalProps> = ({
           </div>
 
           <div className="mb-6">
-            <h3 className="text-base sm:text-lg font-medium mb-3">Available Firefighters</h3>
+            <h3 className="text-base sm:text-lg font-medium mb-3">
+              Available Firefighters
+            </h3>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {availableFirefighters.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
@@ -65,24 +86,53 @@ const AssignFirefightersModal: React.FC<AssignFirefightersModalProps> = ({
                 </div>
               ) : (
                 availableFirefighters.map((firefighter) => (
-                  <label
+                  <div
+                    className="flex items-center justify-center gap-x-2"
                     key={firefighter._id}
-                    className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                   >
-                    <input
-                      type="checkbox"
-                      checked={selectedFirefighters.includes(firefighter._id)}
-                      onChange={() => handleToggleFirefighter(firefighter._id)}
-                      className="mr-3 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm sm:text-base truncate">{firefighter.name}</p>
-                      <p className="text-xs sm:text-sm text-gray-600 truncate">{firefighter.contact}</p>
+                    <label
+                      className={`flex mt-3 items-center w-[90%]  p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors
+                         ${
+                           selectedLeader === firefighter._id &&
+                           "ring-2 ring-green-500 bg-green-100"
+                         }
+                      `}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedFirefighters.includes(firefighter._id)}
+                        onChange={() =>
+                          handleToggleFirefighter(firefighter._id)
+                        }
+                        className={`mr-3 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded *:
+                         `}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm sm:text-base truncate">
+                          {firefighter.name}
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-600 truncate">
+                          {firefighter.contact}
+                        </p>
+                      </div>
+                      <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded flex-shrink-0">
+                        {firefighter.status}
+                      </span>
+                    </label>
+                    <div>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Check
+                            className="h-5 w-5 text-primary"
+                            onClick={() => {
+                              setSelectedLeader(firefighter._id);
+                            }}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>Make Leader</TooltipContent>
+                      </Tooltip>
                     </div>
-                    <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded flex-shrink-0">
-                      {firefighter.status}
-                    </span>
-                  </label>
+                  </div>
                 ))
               )}
             </div>
@@ -107,7 +157,7 @@ const AssignFirefightersModal: React.FC<AssignFirefightersModalProps> = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AssignFirefightersModal
+export default AssignFirefightersModal;

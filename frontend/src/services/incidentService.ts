@@ -7,8 +7,8 @@ export const fetchActiveIncidents = () => API.get("/api/v1/alert/active");
 export const fetchPendingIncidents = (department_id: string) =>
   API.get(`/api/v1/alert/pending/${department_id}`);
 
-export const assignFirefighters = (id: string, firefighterIds: string[]) =>
-  API.patch(`/api/v1/alert/${id}/assign`, { firefighterIds });
+export const assignFirefighters = (id: string, firefighterIds: string[],leaderId: string) =>
+  API.patch(`/api/v1/alert/${id}/assign`, { firefighterIds,leaderId });
 
 export const fetchAllIncidents = () => API.get("/api/v1/alert/all");
 
