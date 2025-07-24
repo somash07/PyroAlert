@@ -183,7 +183,7 @@ export const createFirefighter = async (
     // Send password reset email
     const resetUrl = `${req.protocol}://${req.get(
       "host"
-    )}/reset-password?token=${resetToken}&email=${email}&type=firefighter`;
+    )}/forgot-password?token=${resetToken}&email=${email}&type=firefighter`;
 
     try {
       await sendCode(email, resetUrl, maileType.FIREFIGHTER_PASSWORD_RESET);
@@ -409,7 +409,7 @@ export const sendFirefighterPasswordReset = async (
     // Send password reset email
     const resetUrl = `${req.protocol}://${req.get(
       "host"
-    )}/reset-password?token=${resetToken}&email=${email}&type=firefighter`;
+    )}/forgot-password?token=${resetToken}&email=${email}&type=firefighter`;
 
     try {
       await sendCode(email, resetUrl, maileType.FIREFIGHTER_PASSWORD_RESET);
@@ -421,6 +421,45 @@ export const sendFirefighterPasswordReset = async (
     res.json({
       success: true,
       message: "Password reset email sent successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Validate reset token
+export const validateResetToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { token, email } = req.body;
+
+    if (!token || !email) {
+      return next(new AppError("Token and email are required", 400));
+    }
+
+    // Hash the token to compare with stored token
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    // Find firefighter with valid token
+    const firefighter = await Firefighter.findOne({
+      email,
+      resetPasswordToken,
+      resetPasswordExpiry: { $gt: Date.now() },
+    });
+
+    if (!firefighter) {
+      return next(new AppError("Invalid or expired reset token", 400));
+    }
+
+    res.json({
+      success: true,
+      message: "Token is valid",
     });
   } catch (error) {
     next(error);

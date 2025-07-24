@@ -10,6 +10,7 @@ import {
   getFirefightersByDepartment,
   resetFirefighterPassword,
   sendFirefighterPasswordReset,
+  validateResetToken,
   loginFirefighter,
   getFirefighterProfile,
   updateFirefighterProfile,
@@ -91,6 +92,8 @@ router.delete("/:id", validateObjectId, deleteFirefighter);
 // Password reset routes
 router.post("/reset-password", resetFirefighterPassword);
 router.post("/send-reset-email", sendFirefighterPasswordReset);
+router.post("/forgot-password", resetFirefighterPassword);
+router.post("/validate-token", validateResetToken);
 
 // Mobile app routes
 router.post("/login", loginFirefighter);

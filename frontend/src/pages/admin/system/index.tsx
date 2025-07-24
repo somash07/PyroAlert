@@ -36,18 +36,18 @@ const SYSTEM_SECTIONS = [
     icon: ClipboardList,
     path: "/admin/clients",
   },
-  {
-    title: "Incident Reports",
-    description: "Review and manage reports of fire incidents.",
-    icon: AlertTriangle,
-    path: "/admin/incidents",
-  },
-  {
-    title: "Equipment Inventory",
-    description: "Track and maintain firefighting equipment and supplies.",
-    icon: Package,
-    path: "/admin/equipment",
-  },
+  // {
+  //   title: "Incident Reports",
+  //   description: "Review and manage reports of fire incidents.",
+  //   icon: AlertTriangle,
+  //   path: "/admin/incidents",
+  // },
+  // {
+  //   title: "Equipment Inventory",
+  //   description: "Track and maintain firefighting equipment and supplies.",
+  //   icon: Package,
+  //   path: "/admin/equipment",
+  // },
 ];
 
 const System: React.FC = () => {
