@@ -503,6 +503,7 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+
 // const toggleVolunteerMode = asyncHandler(
 //   async (req: AuthRequest, res: Response) => {
 //     const { isVolunteer } = req.body;
@@ -534,6 +535,17 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
 //   }
 // );
 
+
+const getAllFireDepartments = async (req: Request, res: Response) => {
+  try {
+    const departments = await User.find({ type: "Firedepartment" }).select("username email location");
+    return res.status(200).json({ success: true, data: departments });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Failed to fetch departments" });
+  }
+};
+
+
 export {
   signUpHandler,
   signInHandler,
@@ -542,4 +554,5 @@ export {
   resetPassword,
   logoutUser,
   refreshAccessToken,
+  getAllFireDepartments,
 };

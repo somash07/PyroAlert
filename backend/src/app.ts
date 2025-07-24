@@ -62,13 +62,6 @@ app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
 });
 
 
-// routes that needs authentication
-// app.use(authenticateWithJwt);
-// app.use("/api/v1/profile", profileRoute);
-// app.use("/api/v1/rescue-posts", rescuePostRoute);
-// app.use("/api/v1/adoption-posts", adoptionPostRoute);
-// app.use("/api/v1/volunteer-posts", volunteerPostRoute);
 
-// app.use(errorHandler);
 
 export { app, server, io };

@@ -6,8 +6,9 @@ import {
   getVerificationCode,
   resetPassword,
   logoutUser,
-  refreshAccessToken,
+  refreshAccessToken, 
   adminLoginHandler,
+  getAllFireDepartments,
 } from "../controllers/user.controller";
 import { authenticateWithJwt, authorize } from "../middlewares/auth.middleware";
 import asyncHandler from "../utils/asyncHandeler";
@@ -65,6 +66,8 @@ router.get(
   authorize(["Admin"]),
   getAllClientsAdmin
 );
+
+router.get("/departments", asyncHandler(getAllFireDepartments));
 
 router.route("/sign-up").post(signUpHandler);
 

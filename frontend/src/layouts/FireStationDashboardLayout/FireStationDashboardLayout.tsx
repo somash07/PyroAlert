@@ -78,7 +78,7 @@ const FireStationDashboardLayout: React.FC = () => {
       case "history":
         return <History />;
       case "settings":
-        return <Settings />;
+        return <FDSettings />;
       default:
         return <Dashboard />;
     }

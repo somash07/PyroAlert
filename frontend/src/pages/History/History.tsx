@@ -4,7 +4,10 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../../store/store";
-import { loadAllIncidents, selectActiveIncidents } from "../../store/slices/incidentsSlice";
+import {
+  loadAllIncidents,
+  selectActiveIncidents,
+} from "../../store/slices/incidentsSlice";
 import { fetchFirefightersByDepartment } from "../../store/slices/firefighterSlice";
 import {
   ClockIcon,
@@ -75,11 +78,13 @@ const History: React.FC = () => {
   });
 
   const getAssignedFirefighters = (incidentId: string): Firefighter[] => {
-    const incident = incidents.find((i) => i._id=== incidentId);
+    const incident = incidents.find((i) => i._id === incidentId);
     if (!incident?.assigned_firefighters) return [];
 
     return firefighters.filter((ff) =>
-      incident.assigned_firefighters?.includes(ff._id)
+      incident.assigned_firefighters?.some(
+        (assigned) => assigned._id === ff._id
+      )
     );
   };
 
@@ -114,7 +119,7 @@ const History: React.FC = () => {
                 placeholder="Search by location or incident ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none "
               />
             </div>
           </div>
@@ -124,7 +129,7 @@ const History: React.FC = () => {
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
             >
               <option value="all">All Time</option>
               <option value="today">Today</option>
@@ -161,7 +166,9 @@ const History: React.FC = () => {
             </div>
           ) : (
             filteredIncidents.map((incident) => {
-              const assignedFirefighters = getAssignedFirefighters(incident._id);
+              const assignedFirefighters = getAssignedFirefighters(
+                incident._id
+              );
 
               return (
                 <div

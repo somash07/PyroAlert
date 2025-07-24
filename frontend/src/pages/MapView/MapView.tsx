@@ -1,7 +1,6 @@
-"use client";
-
 import React, { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch } from "../../store/store";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { RootState } from "../../store/store";
@@ -9,18 +8,29 @@ import {
   selectActiveIncidents,
   selectPendingIncidents,
 } from "../../store/slices/incidentsSlice";
-import type { Firefighter, Incident } from "../../types";
+import type { Firefighter, Incident, User } from "../../types";
 import IncidentInfoCard from "./IncidentInfoCard";
 import { FireIcon } from "@heroicons/react/24/outline";
-
+import {
+  fetchDepartments,
+  selectDepartments,
+} from "@/store/slices/departmentSlice";
 const MapView: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+
   const pendingRequests = useSelector(selectPendingIncidents);
   const activeIncidents = useSelector(selectActiveIncidents);
   const firefighters = useSelector(
     (state: RootState) => state.firefighters.firefighters
   );
+  const departments = useSelector(selectDepartments);
+
   const storedUser = localStorage.getItem("userInfo");
   const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
+
+  useEffect(() => {
+    dispatch(fetchDepartments());
+  }, [dispatch]);
 
   const combined = [...pendingRequests, ...activeIncidents]
     .filter(
@@ -33,7 +43,6 @@ const MapView: React.FC = () => {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
-  // Find the most recent pending incident
   const mostRecentPending = pendingRequests
     .filter(
       (incident) =>
@@ -57,7 +66,6 @@ const MapView: React.FC = () => {
   const [mapCenter] = useState<[number, number]>([27.7172, 85.324]); // Kathmandu
   const [mapZoom] = useState(13);
 
-  // Initialize Leaflet map
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
       mapInstanceRef.current = L.map(mapRef.current, {
@@ -78,7 +86,6 @@ const MapView: React.FC = () => {
     };
   }, [mapCenter, mapZoom]);
 
-  // Center the map on the most recent pending incident
   useEffect(() => {
     if (
       !hasCentered &&
@@ -93,16 +100,16 @@ const MapView: React.FC = () => {
     }
   }, [mostRecentPending, hasCentered, mapZoom]);
 
-  // Place Markers
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    // Clear existing markers
+    // Clear markers
     Object.values(markersRef.current).forEach((marker) => {
       mapInstanceRef.current!.removeLayer(marker);
     });
     markersRef.current = {};
 
+    // INCIDENT MARKERS
     combined.forEach((incident) => {
       const coords = incident.geo_location?.coordinates;
       const lat = coords?.[1];
@@ -155,7 +162,37 @@ const MapView: React.FC = () => {
 
       markersRef.current[incident._id] = marker;
     });
-  }, [combined]);
+
+    // DEPARTMENT MARKERS
+    departments.forEach((dept: User) => {
+      const coords = dept.location;
+      const lat = coords?.lat;
+      const lng = coords?.lng;
+      if (!lat || !lng) return;
+
+      const deptIcon = L.divIcon({
+        html: `
+        <img src= "/mapMarker/fire-department.png" class="w-6 h-6 object-contain" alt="department"  />
+          
+        `,
+        className: "",
+        iconSize: [30, 30],
+      });
+
+      const marker = L.marker([lat, lng], { icon: deptIcon }).addTo(
+        mapInstanceRef.current!
+      );
+
+      marker.bindTooltip(
+        `<div style="text-align:center;font-size:12px">
+          <strong>${dept.username || "Fire Department"}</strong>
+        </div>`,
+        { direction: "top", offset: [0, -15] }
+      );
+
+      markersRef.current[dept._id] = marker;
+    });
+  }, [combined, departments]);
 
   const getAssignedFirefighters = (incidentId: string): Firefighter[] => {
     const incident = combined.find((i) => i._id === incidentId);
@@ -179,33 +216,37 @@ const MapView: React.FC = () => {
   return (
     <div className="p-4 space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-gray-700 text-center">Live Incident Map</h2>
         <p className="text-sm text-gray-500 text-center">
-          Visualize and manage ongoing fire emergencies in real-time.
+          Visualize ongoing fire emergencies in real-time.
         </p>
       </div>
 
       {/* Incident Counts */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <img src="/mapMarker/pending.png" alt="" className="w-5" />
-            <p className="text-xs text-gray-600">
-              {statusCounts.pending} Pending{" "}
-            </p>
-          </div>
-          <div className="flex flex-col items-center gap-3">
-            <img src="/mapMarker/acknowledged.png" alt="" className="w-5" />
-            <p className="text-xs text-gray-600">
-              {statusCounts.acknowledged} Acknowledged
-            </p>
-          </div>
-          <div className="flex flex-col items-center gap-3">
-            <img src="/mapMarker/dispatched.png" alt="" className="w-5" />
-            <p className="text-xs text-gray-600">
-              {statusCounts.dispatched} Dispatched
-            </p>
-          </div>
-
+        <div className="flex flex-col items-center gap-3">
+          <img src="/mapMarker/pending.png" alt="" className="w-5" />
+          <p className="text-xs text-gray-600">
+            {statusCounts.pending} Pending
+          </p>
+        </div>
+        <div className="flex flex-col items-center gap-3">
+          <img src="/mapMarker/acknowledged.png" alt="" className="w-5" />
+          <p className="text-xs text-gray-600">
+            {statusCounts.acknowledged} Acknowledged
+          </p>
+        </div>
+        <div className="flex flex-col items-center gap-3">
+          <img src="/mapMarker/dispatched.png" alt="" className="w-5" />
+          <p className="text-xs text-gray-600">
+            {statusCounts.dispatched} Dispatched
+          </p>
+        </div>
+        <div className="flex flex-col items-center gap-3">
+          <img src="/mapMarker/fire-department.png" alt="" className="w-5" />
+          <p className="text-xs text-gray-600">
+            {departments.length} Departments
+          </p>
+        </div>
       </div>
 
       {/* Map Container */}

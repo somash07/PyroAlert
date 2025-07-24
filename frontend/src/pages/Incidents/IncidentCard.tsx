@@ -14,9 +14,11 @@ import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { confirmAndSend } from "@/services/incidentService";
 import { toast } from "sonner";
-import { useDispatch } from "react-redux";
-import type { AppDispatch } from "@/store/store";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/store/store";
 import { loadActiveIncidents } from "@/store/slices/incidentsSlice";
+import { FaSpinner } from "react-icons/fa";
+import { DotLoader } from "react-spinners";
 
 interface IncidentCardProps {
   incident: Incident;
@@ -30,6 +32,10 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
   onAssign,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
+
+  const {loading} = useSelector(
+      (state: RootState) => state.incidents
+    );
 
   const storedUser = localStorage.getItem("userInfo");
   const storedUserLat = storedUser ? JSON.parse(storedUser)?.lat : null;
@@ -191,7 +197,7 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
             onClick={() => handleConfirm(incident._id)}
             className="mt-2 bg-green-600 text-white"
           >
-            Confirm & Send to Location
+            { loading ? <DotLoader size={10} color="#ffffff" />: "Confirm & Send to Location"}
           </Button>
         </div>
       )}

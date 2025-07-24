@@ -96,13 +96,19 @@ export interface DashboardStats {
 }
 
 export interface User {
-  id: string;
-  name: string;
+  _id: string,
+  username: string;
   email: string;
-  department: string;
-  role: "admin" | "chief" | "operator";
-  isActive: boolean;
-  lastLogin?: string;
+  password: string;
+  type: string;
+  verifyCode: string;
+  isVerified: boolean;
+  verifyCodeExpiry: Date;
+  refreshToken?: string;
+  location?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface Incident {
@@ -121,7 +127,8 @@ export interface Incident {
     | "assigned"
     | "dispatched"
     | "completed"
-    | "acknowledged";
+    | "acknowledged"
+    | "unassigned";
   assigned_firefighters?: Array<{ name: string; _id: string }>;
   assigned_department?: {
     _id: string;
