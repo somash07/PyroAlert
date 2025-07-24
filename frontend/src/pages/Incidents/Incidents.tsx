@@ -54,9 +54,10 @@ const Incidents: React.FC = () => {
 
   const handleAssignFirefighters = (
     incidentId: string,
-    firefighterIds: string[]
+    firefighterIds: string[],
+    leaderId: string
   ) => {
-    dispatch(assignFirefighterss({ incidentId, firefighterIds }));
+    dispatch(assignFirefighterss({ incidentId, firefighterIds, leaderId }));
     dispatch(loadActiveIncidents());
     setShowAssignModal(false);
     setSelectedIncident(null);

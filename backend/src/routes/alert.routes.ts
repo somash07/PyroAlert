@@ -14,6 +14,7 @@ import {
 } from "../controllers/alert.controller";
 import { validateObjectId } from "./firefighter.route";
 import { body } from "express-validator";
+import { authenticateWithJwt } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 
@@ -79,7 +80,7 @@ router.get(
   getAllIncidentsAssignedToFirefighter
 );
 
-router.get(
+router.post(
   "/getSingleIncidentAssignedToFirefighter/:incidentId",
   getSingleIncidentAssignedToFirefighter
 );

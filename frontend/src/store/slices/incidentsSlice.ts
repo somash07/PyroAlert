@@ -119,11 +119,17 @@ export const assignFirefighterss = createAsyncThunk(
   async ({
     incidentId,
     firefighterIds,
+    leaderId,
   }: {
     incidentId: string;
     firefighterIds: string[];
+    leaderId: string;
   }) => {
-    const response = await assignFirefighters(incidentId, firefighterIds);
+    const response = await assignFirefighters(
+      incidentId,
+      firefighterIds,
+      leaderId
+    );
     return response.data;
   }
 );
