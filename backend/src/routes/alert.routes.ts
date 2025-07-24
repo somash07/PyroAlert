@@ -6,7 +6,9 @@ import {
   createAlert,
   getActiveIncidents,
   getAllIncidents,
+  getAllIncidentsAssignedToFirefighter,
   getPendingIncidents,
+  getSingleIncidentAssignedToFirefighter,
   respondToIncident,
   updateIncidentStatus,
 } from "../controllers/alert.controller";
@@ -39,17 +41,19 @@ router.patch(
       .isArray({ min: 1 })
       .withMessage("At least one firefighter ID is required")
       .custom((value) => {
-        if (!value.every((id: any) => typeof id === "string" && id.length === 24)) {
-          throw new Error("All firefighter IDs must be valid")
+        if (
+          !value.every((id: any) => typeof id === "string" && id.length === 24)
+        ) {
+          throw new Error("All firefighter IDs must be valid");
         }
-        return true
+        return true;
       }),
   ],
-  assignFirefighters,
-)
+  assignFirefighters
+);
 
 //confirm and dispatch
-router.patch("/:id/confirm", validateObjectId, confirmAndDispatch)
+router.patch("/:id/confirm", validateObjectId, confirmAndDispatch);
 
 // POST: Respond to an incident request (accept or reject)
 router.post("/:id/respond", respondToIncident);
@@ -60,11 +64,23 @@ router.patch(
   [
     validateObjectId,
     body("notes").optional().isString().withMessage("Notes must be a string"),
-    body("responseTime").optional().isNumeric().withMessage("Response time must be a number"),
+    body("responseTime")
+      .optional()
+      .isNumeric()
+      .withMessage("Response time must be a number"),
   ],
-  completeIncident,
-)
+  completeIncident
+);
 
-router.get("/getAssignedIncidents/:departmentId",getActiveIncidents)
+router.get("/getAssignedIncidents/:departmentId", getActiveIncidents);
 
+router.get(
+  "/getAllIncidentsAssignedToFirefighter/:firefighterId",
+  getAllIncidentsAssignedToFirefighter
+);
+
+router.get(
+  "/getSingleIncidentAssignedToFirefighter/:incidentId",
+  getSingleIncidentAssignedToFirefighter
+);
 export { router as alertRoutes };

@@ -332,8 +332,11 @@ export const getPendingIncidents = async (req: Request, res: Response) => {
     }
 
     const incidents = await Incident.find(query)
-      .populate("requested_department rejection_history.department", "username address contact")
-      .populate("nearby_departments.department", "username")  
+      .populate(
+        "requested_department rejection_history.department",
+        "username address contact"
+      )
+      .populate("nearby_departments.department", "username")
       .sort({ timestamp: -1 });
 
     res.status(200).json(incidents);
@@ -348,7 +351,12 @@ export const getPendingIncidents = async (req: Request, res: Response) => {
 
 export const getActiveIncidents = async (req: Request, res: Response) => {
   try {
-    const activeStatuses = ["in_progress", "acknowledged", "assigned", "dispatched"];
+    const activeStatuses = [
+      "in_progress",
+      "acknowledged",
+      "assigned",
+      "dispatched",
+    ];
     const incidents = await Incident.find({ status: { $in: activeStatuses } })
       .populate("assigned_department", "username address contact")
       .sort({ timestamp: -1 });
@@ -570,6 +578,93 @@ export const completeIncident = async (
       success: true,
       data: incident,
       message: "Incident marked as completed",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllIncidentsAssignedToFirefighter = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { firefighterId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(firefighterId)) {
+      return next(new AppError("Invalid firefighter ID", 400));
+    }
+
+    const incidents = await Incident.find({
+      assigned_firefighters: firefighterId,
+    }).populate("assigned_firefighters");
+
+  
+
+    const incidentToSend = incidents.map((i) => ({
+      _id: i._id,
+      alert_type: i.alert_type,
+      location: i.location,
+      timestamp: i.timestamp,
+      confidence: i.confidence,
+      status: i.status,
+      assigned_department: i.assigned_department,
+      geo_location: {
+        type: "Point",
+        coordinates: [85.324, 27.7172],
+      },
+      response_time: "5 minutes",
+      notes: "Black smoke reported near school...",
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: incidentToSend,
+      count: incidentToSend.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSingleIncidentAssignedToFirefighter = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { incidentId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(incidentId)) {
+      return next(new AppError("Invalid incident ID", 400));
+    }
+
+    console.log(`Fetching incident: ${incidentId}`);
+    const incident = await Incident.findById(incidentId).populate(
+      "assigned_firefighters name contact"
+    );
+    if (!incident) {
+      return next(new AppError("Incident not found", 404));
+    }
+
+    const incidentToSend = {
+      _id: incident._id,
+      alert_type: incident.alert_type,
+      location: incident.location,
+      timestamp: incident.timestamp,
+      status: incident.status,
+      assigned_department: incident.assigned_department,
+      geo_location: {
+        long: incident.geo_location?.coordinates[0],
+        lat: incident.geo_location?.coordinates[1],
+      },
+      detection_method: incident.additional_info?.detection_method || "Unknown",
+      device_name: incident.additional_info?.device_name || "Unknown",
+      notes: incident.notes || "No notes provided",
+    };
+console.log("Incident to send:", incidentToSend);
+    res.status(200).json({
+      success: true,
+      data: incidentToSend,
     });
   } catch (error) {
     next(error);
