@@ -15,6 +15,7 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import {toast} from "sonner";
 
 interface IncidentInfoCardProps {
   incident: Incident;
@@ -274,7 +275,7 @@ const IncidentInfoCard: React.FC<IncidentInfoCardProps> = ({
                   .map((ff) => ff.contact)
                   .join(", ");
                 navigator.clipboard.writeText(phoneNumbers);
-                alert("Contacts copied to clipboard!");
+                toast.success("Contacts copied to clipboard!");
               }}
               className="flex-1 flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
             >

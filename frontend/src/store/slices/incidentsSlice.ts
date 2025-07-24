@@ -13,11 +13,12 @@ import {
   updateIncident,
   assignFirefighters,
   fetchAssignedincidents,
+  completeIncident,
 } from "@/services/incidentService";
 import type { Incident } from "@/types";
 
 interface IncidentsState {
-  incidents:Incident[],
+  incidents: Incident[];
   active: Incident[];
   pending: Incident[];
   loading: boolean;
@@ -94,12 +95,17 @@ export const respondToIncidentThunk = createAsyncThunk(
       departmentId,
       action,
       notes,
-    }: { id: string,departmentId: string; action: "accept" | "reject"; notes?: string },
+    }: {
+      id: string;
+      departmentId: string;
+      action: "accept" | "reject";
+      notes?: string;
+    },
     thunkAPI
   ) => {
     try {
       const res = await respondToIncident(id, departmentId, action, notes);
-      return { id ,departmentId, result: res.data };
+      return { id, departmentId, result: res.data };
     } catch (err: any) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || err.message
@@ -110,20 +116,46 @@ export const respondToIncidentThunk = createAsyncThunk(
 
 export const assignFirefighterss = createAsyncThunk(
   "incidents/assignFirefighters",
-  async ({ incidentId, firefighterIds }: { incidentId: string; firefighterIds: string[] }) => {
-    const response = await assignFirefighters(incidentId, firefighterIds)
-    return response.data
-  },
-)
+  async ({
+    incidentId,
+    firefighterIds,
+  }: {
+    incidentId: string;
+    firefighterIds: string[];
+  }) => {
+    const response = await assignFirefighters(incidentId, firefighterIds);
+    return response.data;
+  }
+);
 
 export const getAssignedIncidents = createAsyncThunk(
   "assignedIncidents/fetchAll",
-  async (departmentId: string ) => {
+  async (departmentId: string) => {
     const res = await fetchAssignedincidents(departmentId);
     return res.data;
   }
 );
 
+export const completeIncidentThunk = createAsyncThunk(
+  "incidents/complete",
+  async (
+    {
+      id,
+      notes,
+      responseTime,
+    }: { id: string; notes: string; responseTime: number },
+    thunkAPI
+  ) => {
+    try {
+      const res = await completeIncident(id, notes, responseTime);
+      return res.data;
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || err.message
+      );
+    }
+  }
+);
 
 const incidentSlice = createSlice({
   name: "incidents",
@@ -160,9 +192,13 @@ const incidentSlice = createSlice({
         state.error = action.error.message || "Failed to load active incidents";
       })
 
+      .addCase(completeIncidentThunk.fulfilled, (state, action) => {
+        const completed = action.payload.data;
+        // Remove from active
+        state.active = state.active.filter((i) => i._id !== completed._id);
+      })
 
-
-       .addCase(getAssignedIncidents.pending, (state) => {
+      .addCase(getAssignedIncidents.pending, (state) => {
         state.loading = true;
       })
 
@@ -175,7 +211,6 @@ const incidentSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || "Failed to load active incidents";
       })
-
 
       .addCase(loadAllIncidents.fulfilled, (state, action) => {
         state.incidents = action.payload.filter(
@@ -217,14 +252,14 @@ const incidentSlice = createSlice({
         if (action.payload.result?.data?.status === "acknowledged") {
           state.active.unshift(action.payload.result.data);
         }
-      })
+      });
 
-      // .addCase(assignFirefighters.fulfilled, (state, action) => {
-      //   const index = state.pending.findIndex((incident) => incident._id === action.payload.id)
-      //   if (index !== -1) {
-      //     state.pending[index] = action.payload
-      //   }
-      // })
+    // .addCase(assignFirefighters.fulfilled, (state, action) => {
+    //   const index = state.pending.findIndex((incident) => incident._id === action.payload.id)
+    //   if (index !== -1) {
+    //     state.pending[index] = action.payload
+    //   }
+    // })
   },
 });
 

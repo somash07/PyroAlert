@@ -542,7 +542,7 @@ export const completeIncident = async (
       {
         status: "completed",
         completedAt: new Date(),
-        completionNotes: notes,
+        completion_notes: notes,
         actualResponseTime: responseTime,
         // completedBy: req.user?.id,
       },
@@ -564,7 +564,7 @@ export const completeIncident = async (
       );
     }
 
-    req.io?.emit("incident-completed", incident);
+    // req.io?.emit("incident-completed", incident);
 
     res.json({
       success: true,

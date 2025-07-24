@@ -1,3 +1,4 @@
+"use client";
 import type React from "react";
 import type { Incident } from "../../types";
 import {
@@ -9,12 +10,9 @@ import {
   ArrowRightIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { MapPin, ThermometerIcon } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  confirmAndSend,
-  fetchActiveIncidents,
-} from "@/services/incidentService";
+import { confirmAndSend } from "@/services/incidentService";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/store/store";
@@ -32,13 +30,13 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
   onAssign,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
+
   const storedUser = localStorage.getItem("userInfo");
   const storedUserLat = storedUser ? JSON.parse(storedUser)?.lat : null;
   const storedUserLng = storedUser ? JSON.parse(storedUser)?.lng : null;
 
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString();
-  };
+  const formatTime = (timestamp: string) =>
+    new Date(timestamp).toLocaleString();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -53,72 +51,51 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
     }
   };
 
-  function calculateDistance(
+  const calculateDistance = (
     lat1: number,
     lon1: number,
     lat2: number,
     lon2: number
-  ): number {
-    if (
-      [lat1, lon1, lat2, lon2].some(
-        (coord) =>
-          coord === undefined ||
-          isNaN(coord) ||
-          Math.abs(lat1) > 90 ||
-          Math.abs(lat2) > 90 ||
-          Math.abs(lon1) > 180 ||
-          Math.abs(lon2) > 180
-      )
-    ) {
-      throw new Error("Invalid coordinates");
-    }
-
-    const R = 6371; // Radius of the Earth in kilometers
+  ): number => {
+    const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.sin(dLat / 2) ** 2 +
       Math.cos((lat1 * Math.PI) / 180) *
         Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+        Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in kilometers
-    return distance;
-  }
+    return R * c;
+  };
 
-  let distance = null;
-  try {
-    if (
-      storedUserLat !== null &&
-      storedUserLng !== null &&
-      incident.geo_location?.coordinates?.[1] !== undefined &&
-      incident.geo_location?.coordinates?.[0] !== undefined
-    ) {
-      distance = calculateDistance(
-        storedUserLat,
-        storedUserLng,
-        Number(incident.geo_location.coordinates[1]),
-        Number(incident.geo_location.coordinates[0])
-      ).toFixed(2);
-    }
-  } catch (error) {
-    console.error("Distance calculation failed:", error);
-  }
+  const distance =
+    storedUserLat &&
+    storedUserLng &&
+    incident.geo_location?.coordinates?.[1] !== undefined &&
+    incident.geo_location?.coordinates?.[0] !== undefined
+      ? calculateDistance(
+          storedUserLat,
+          storedUserLng,
+          Number(incident.geo_location.coordinates[1]),
+          Number(incident.geo_location.coordinates[0])
+        ).toFixed(2)
+      : null;
 
-  function handelConfirm(incidentid: any) {
+  const handleConfirm = async (incidentId: string) => {
+    await confirmAndSend(incidentId);
     dispatch(loadActiveIncidents());
-    confirmAndSend(incidentid);
     toast.success("Notified firefighters");
-  }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-red-500">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-2 sm:space-y-0">
+      <div className="flex justify-between items-start mb-4">
         <div className="flex items-center">
-          <FireIcon className="h-6 w-6 sm:h-8 sm:w-8 text-red-500 mr-3 flex-shrink-0" />
+          <FireIcon className="h-6 w-6 text-red-500 mr-3" />
           <div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900">
               Fire Detected
             </h3>
             <span
@@ -131,133 +108,100 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
             </span>
           </div>
         </div>
-        <div className="text-left sm:text-right">
-          <p className="text-xs sm:text-sm text-gray-500">
-            Incident #{incident._id.slice(-6)}
-          </p>
-        </div>
+        <p className="text-xs text-gray-500">#{incident._id.slice(-6)}</p>
       </div>
 
-      {/* Main Info Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+      {/* Main Info */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <div className="flex items-center">
-          <ClockIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 mr-2 flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xs text-gray-500">Time</p>
-            <p className="font-semibold text-xs sm:text-sm truncate">
-              {formatTime(incident.timestamp)}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center">
-          <MapPinIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-2 flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xs text-gray-500">Distance</p>
-            <p className="font-semibold text-sm sm:text-base">{distance} km</p>
-          </div>
-        </div>
-        <div className="flex items-center sm:col-span-1 lg:col-span-1">
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-xs sm:text-sm truncate">
-              {/* {incident.location.address} */}
-              <a
-                href={`https://www.google.com/maps?q=${incident.geo_location?.coordinates[1]},${incident.geo_location?.coordinates[0]}`}
-                target="black"
-              >
-                <Button
-                  className="w-auto h-auto p-1 cursor-pointer"
-                  variant="outline"
-                >
-                  <MapPin className="w-3 h-3 mr-1" />
-                  View on googlemaps
-                </Button>
-              </a>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Detection Info */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4">
-        <div className="flex items-center">
-          <span className="text-xs text-gray-500 mr-2">Detection Type</span>
-          <p className="font-semibold text-xs sm:text-sm">
-            {incident.alert_type === "fire"
-              ? "Fire"
-              : incident.alert_type === "smoke"
-              ? "Smoke"
-              : "⚠️ Other"}
+          <ClockIcon className="h-4 w-4 text-blue-500 mr-2" />
+          <p className="text-xs text-gray-500">
+            Time: {formatTime(incident.timestamp)}
           </p>
         </div>
-        {incident.additional_info?.device_name && (
+        {distance && (
           <div className="flex items-center">
-            <span className="text-xs text-gray-500 mr-2">Device name  : </span>
-            <p className="font-semibold text-xs sm:text-sm truncate">
-               {incident.additional_info?.device_name}
-            </p>
+            <MapPinIcon className="h-4 w-4 text-green-500 mr-2" />
+            <p className="text-xs text-gray-500">Distance: {distance} km</p>
           </div>
+        )}
+        <div className="col-span-2">
+          <a
+            href={`https://www.google.com/maps?q=${incident.geo_location?.coordinates[1]},${incident.geo_location?.coordinates[0]}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Button variant="outline" size="sm">
+              <MapPin className="h-3 w-3 mr-1" />
+              View on Google Maps
+            </Button>
+          </a>
+        </div>
+      </div>
+
+      {/* Extra Info */}
+      <div className="text-xs text-gray-700 mb-3">
+        Type:{" "}
+        <strong>
+          {incident.alert_type === "fire"
+            ? "Fire"
+            : incident.alert_type === "smoke"
+            ? "Smoke"
+            : "Other"}
+        </strong>
+        {incident.additional_info?.device_name && (
+          <>
+            {" "}
+            | Device: <strong>{incident.additional_info.device_name}</strong>
+          </>
         )}
       </div>
 
-      {/* Action Buttons */}
+      {/* Buttons based on status */}
       {incident.status === "pending_response" && (
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <button
+        <div className="flex gap-2">
+          <Button
             onClick={() => onAccept(incident._id)}
-            className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+            className="bg-green-600 hover:bg-green-700 text-white text-sm"
           >
-            <CheckIcon className="h-4 w-4 mr-2" />
-            Accept
-          </button>
-          <button className="flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm">
-            <XMarkIcon className="h-4 w-4 mr-2" />
-            Reject
-          </button>
-          <button className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
-            <ArrowRightIcon className="h-4 w-4 mr-2" />
-            Transfer
-          </button>
+            <CheckIcon className="h-4 w-4 mr-1" /> Accept
+          </Button>
+          <Button variant="destructive" className="text-sm">
+            <XMarkIcon className="h-4 w-4 mr-1" /> Reject
+          </Button>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm">
+            <ArrowRightIcon className="h-4 w-4 mr-1" /> Transfer
+          </Button>
         </div>
       )}
 
       {incident.status === "acknowledged" && (
-        <div className="flex">
-          <button
-            onClick={() => onAssign(incident)}
-            className="flex items-center justify-center px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 transition-colors text-sm w-full sm:w-auto hover:cursor-pointer"
-          >
-            <UserGroupIcon className="h-4 w-4 mr-2" />
-            Assign Firefighters
-          </button>
-        </div>
+        <Button
+          onClick={() => onAssign(incident)}
+          className="bg-blue-700 hover:bg-blue-800 text-white mt-2"
+        >
+          <UserGroupIcon className="h-4 w-4 mr-1" />
+          Assign Firefighters
+        </Button>
       )}
 
-      {incident.status === "assigned" && incident.assigned_firefighters && (
-        <div className="bg-green-50 p-3 rounded-md">
-          <p className="text-xs sm:text-sm text-green-800 mb-2">
-            Assigned to {incident.assigned_firefighters.length} firefighter(s)
+      {incident.status === "assigned" && (
+        <div className="mt-3">
+          <p className="text-xs text-green-800">
+            Assigned to {incident.assigned_firefighters?.length} firefighter(s)
           </p>
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => handelConfirm(incident._id)}
-              className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
-            >
-              Confirm & Send to Location
-            </button>
-
-          </div>
+          <Button
+            onClick={() => handleConfirm(incident._id)}
+            className="mt-2 bg-green-600 text-white"
+          >
+            Confirm & Send to Location
+          </Button>
         </div>
       )}
 
       {incident.status === "dispatched" && (
-        <div className="bg-green-50 p-3 rounded-md">
-          <p className="text-xs sm:text-sm text-green-800 mb-2">
-            Firefighters dispatched
-          </p>
-          {/* <button onClick={()=>confirmAndSend(incident._id)} className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
-            Confirm & Send to Location
-          </button> */}
+        <div className="mt-4 bg-green-50 p-3 rounded-md flex justify-between items-center">
+          <p className="text-xs text-green-800 mb-2">Firefighters dispatched</p>
         </div>
       )}
     </div>

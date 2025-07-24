@@ -30,10 +30,8 @@ export const addFirefighter = createAsyncThunk(
     try {
       const response = await firefighterService.addFirefighter(formData);
       return response.data;
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message || "Failed to add firefighters";
-      return rejectWithValue(message);
+    } catch (error: any) {
+      return rejectWithValue(error.response.data.message || "Add failed");
     }
   }
 );
@@ -95,9 +93,8 @@ const firefightersSlice = createSlice({
       })
       .addCase(addFirefighter.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message ?? "Failed to add firefighter";
+        state.error = (action.payload as string) ?? "Failed to add firefighter";
       })
-
       // Delete Firefighter
       .addCase(deleteFirefighter.pending, (state) => {
         state.loading = true;

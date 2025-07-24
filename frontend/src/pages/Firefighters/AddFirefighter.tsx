@@ -88,12 +88,12 @@ const AddFirefighter: React.FC = () => {
   const filteredFirefighters = useMemo(() => {
     if (!searchTerm.trim()) return firefighters;
 
-    const term = searchTerm.toLowerCase();
+    const term = searchTerm?.toLowerCase();
     return firefighters.filter(
       (ff) =>
-        ff.name.toLowerCase().includes(term) ||
-        ff.email.toLowerCase().includes(term) ||
-        ff.contact.toLowerCase().includes(term)
+        ff.name?.toLowerCase().includes(term) ||
+        ff.email?.toLowerCase().includes(term) ||
+        ff.contact?.toLowerCase().includes(term)
     );
   }, [firefighters, searchTerm]);
 
@@ -130,7 +130,11 @@ const AddFirefighter: React.FC = () => {
       setImageFile(null);
       setPreviewUrl(null);
     } catch (err: any) {
-      console.log(err);
+      if (err === "Firefighter email already exists") {
+        toast.error("A firefighter with this email already exists.");
+      } else {
+        toast.error("Something went wrong while adding firefighter.");
+      }
     }
   };
 
@@ -417,7 +421,7 @@ const AddFirefighter: React.FC = () => {
                         )}
                       </button>
                     </AlertDialogTrigger>
-                    
+
                     <AlertDialogContent className="sm:max-w-[425px]">
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete firefighter?</AlertDialogTitle>

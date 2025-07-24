@@ -28,7 +28,6 @@ import { store, type AppDispatch, type RootState } from "@/store/store";
 import type { Incident } from "@/types";
 import { fetchFirefightersByDepartment } from "@/store/slices/firefighterSlice";
 
-
 const Dashboard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const pendingRequests = useSelector(selectPendingIncidents);
@@ -57,20 +56,19 @@ const Dashboard: React.FC = () => {
   });
 
   useEffect(() => {
-  if (storedDepartmentId) {
-    dispatch(loadActiveIncidents());
-    dispatch(loadPendingIncidents(storedDepartmentId));
-    dispatch(fetchFirefightersByDepartment(storedDepartmentId));
-  }
-}, [dispatch, storedDepartmentId]);
-
+    if (storedDepartmentId) {
+      dispatch(loadActiveIncidents());
+      dispatch(loadPendingIncidents(storedDepartmentId));
+      dispatch(fetchFirefightersByDepartment(storedDepartmentId));
+    }
+  }, [dispatch, storedDepartmentId]);
 
   useEffect(() => {
     const filtered = [...pendingRequests, ...activeIncidents].filter(
-  (incident) =>
-    incident.requested_department?._id === storedDepartmentId ||
-    incident.assigned_department?._id === storedDepartmentId
-);
+      (incident) =>
+        incident.requested_department?._id === storedDepartmentId ||
+        incident.assigned_department?._id === storedDepartmentId
+    );
 
     setRecentIncidents(filtered);
 
@@ -82,8 +80,13 @@ const Dashboard: React.FC = () => {
     setStats((prev) => ({
       ...prev,
       availableFirefighters: firefighters.length,
-      activeIncidents: activeIncidents.length,
-      pendingRequests: pendingRequests.length,
+      activeIncidents: filtered.filter(
+        (i) => i.status === "acknowledged" || i.status === "dispatched"
+      ).length,
+
+      pendingRequests: filtered.filter((i) => i.status === "pending_response")
+        .length,
+
       incidentsToday: todayIncidents.length,
     }));
   }, [pendingRequests, activeIncidents, firefighters, storedDepartmentId]);
@@ -128,14 +131,13 @@ const Dashboard: React.FC = () => {
     return () => {
       socket.disconnect();
     };
-  }, [dispatch, storedUsername, storedDepartmentId,audio]);
+  }, [dispatch, storedUsername, storedDepartmentId, audio]);
 
   const handleAccept = (id: string, deptId: string) => {
     dispatch(
       respondToIncidentThunk({ id: id, departmentId: deptId, action: "accept" })
     );
     // navigate("/")
-    
   };
 
   const handleReject = (id: string, deptId: string) => {

@@ -12,6 +12,7 @@ export interface IIncident extends Document {
   assigned_department?: mongoose.Types.ObjectId
   requested_department?: mongoose.Types.ObjectId
   notes?: string
+  completion_notes?: string
   additional_info?: Record<string, any>
   geo_location?: {
     type: { type: string; enum: ["Point"]; default: "Point" }
@@ -48,6 +49,7 @@ const IncidentSchema: Schema = new Schema(
     assigned_department: { type: Schema.Types.ObjectId, ref: "User" },
     requested_department: { type: Schema.Types.ObjectId, ref: "User" },
     notes: { type: String },
+    completion_notes: {type: String},
     additional_info: { type: Schema.Types.Mixed },
     geo_location: {
       type: { type: String, enum: ["Point"], default: "Point" },

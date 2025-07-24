@@ -192,7 +192,7 @@ export const createFirefighter = async (
       // Don't fail the request if email fails
     }
 
-    req.io?.emit("firefighter-added", firefighter);
+    // req.io?.emit("firefighter-added", firefighter);
 
     res.status(201).json({
       success: true,

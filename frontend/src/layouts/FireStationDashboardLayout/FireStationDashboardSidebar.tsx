@@ -52,7 +52,7 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
   return (
     <>
       {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      <div className="lg:hidden fixed top-4 left-4 z-[100]">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 rounded-md bg-red-700 text-white shadow-lg hover:bg-red-800 transition-colors"
@@ -68,7 +68,7 @@ const FireStationSidebar: React.FC<FireStationSidebarProps> = ({
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-[40]"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
