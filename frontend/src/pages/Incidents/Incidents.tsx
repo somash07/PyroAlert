@@ -50,6 +50,7 @@ const Incidents: React.FC = () => {
     dispatch(
       respondToIncidentThunk({ id: incidentId, departmentId, action: "accept" })
     );
+    toast("")
 
   };
 

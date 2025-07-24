@@ -169,9 +169,6 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
           <Button variant="destructive" className="text-sm">
             <XMarkIcon className="h-4 w-4 mr-1" /> Reject
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm">
-            <ArrowRightIcon className="h-4 w-4 mr-1" /> Transfer
-          </Button>
         </div>
       )}
 
