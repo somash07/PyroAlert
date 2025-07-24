@@ -447,26 +447,26 @@ export const assignFirefighters = async (
     if (firefighters.length !== firefighterIds.length) {
       return next(new AppError("Some firefighters are not available", 400));
     }
-
-    if (leaderId) {
-      const leader = await Firefighter.findById(leaderId);
-      if (!leader) {
-        return next(new AppError("Leader not found", 400));
-      }
-      leader.isLeader = true;
-      await leader.save();
-    }
-
     const incident = await Incident.findByIdAndUpdate(
       req.params.id,
       {
         status: "assigned",
-        assigned_firefighters: firefighterIds,
+        assigned_firefighters: {
+          ids: firefighterIds,
+          leaderId: leaderId,
+        },
         assignedAt: new Date(),
-        // assignedBy: req.user?.id,
       },
       { new: true }
-    ).populate("assigned_firefighters");
+    )
+      .populate({
+        path: "assigned_firefighters.ids",
+        model: "Firefighter", // replace with your actual model name
+      })
+      .populate({
+        path: "assigned_firefighters.leaderId",
+        model: "Firefighter",
+      });
 
     if (!incident) {
       return next(new AppError("Incident not found", 404));
@@ -511,7 +511,7 @@ export const confirmAndDispatch = async (
 
     if (
       !incident.assigned_firefighters ||
-      incident.assigned_firefighters.length === 0
+      incident.assigned_firefighters.ids.length === 0
     ) {
       return next(
         new AppError("No firefighters assigned to this incident", 400)
@@ -519,7 +519,7 @@ export const confirmAndDispatch = async (
     }
 
     await Promise.all(
-      incident.assigned_firefighters.map((firefighter: any) =>
+      incident.assigned_firefighters.ids.map((firefighter: any) =>
         sendCode(firefighter.email, undefined, maileType.INCIDENT_ALERT, {
           location: incident.geo_location?.coordinates,
           temperature: incident.temperature,
@@ -540,7 +540,7 @@ export const confirmAndDispatch = async (
 
     res.json({
       success: true,
-      message: `Emergency alerts sent to ${incident.assigned_firefighters.length} firefighter(s)`,
+      message: `Emergency alerts sent to ${incident.assigned_firefighters.ids.length} firefighter(s)`,
     });
   } catch (error) {
     next(error);
@@ -574,10 +574,10 @@ export const completeIncident = async (
     // Update assigned firefighters status back to available
     if (
       incident.assigned_firefighters &&
-      incident.assigned_firefighters.length > 0
+      incident.assigned_firefighters.ids.length > 0
     ) {
       await Firefighter.updateMany(
-        { _id: { $in: incident.assigned_firefighters.map((f) => f._id) } },
+        { _id: { $in: incident.assigned_firefighters.ids.map((f) => f._id) } },
         { status: "available" }
       );
     }
@@ -600,13 +600,14 @@ export const getAllIncidentsAssignedToFirefighter = async (
   next: NextFunction
 ) => {
   try {
+    console.log("reached here");
     const { firefighterId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(firefighterId)) {
       return next(new AppError("Invalid firefighter ID", 400));
     }
 
     const incidents = await Incident.find({
-      assigned_firefighters: firefighterId,
+      "assigned_firefighters.ids": firefighterId,
     });
 
     const incidentToSend = incidents.map((i) => ({
@@ -653,7 +654,7 @@ export const getSingleIncidentAssignedToFirefighter = async (
 
     const incident = await Incident.findOne({
       _id: incidentId,
-      assigned_firefighters: firefighterId,
+      "assigned_firefighters.ids": firefighterId,
     }).populate({
       path: "assigned_firefighters",
       select: "name contact email image",
@@ -665,7 +666,9 @@ export const getSingleIncidentAssignedToFirefighter = async (
       );
     }
 
-    const otherFirefighters = incident?.assigned_firefighters?.filter(
+    console.log("Incident found:", incident?.assigned_firefighters);
+
+    const otherFirefighters = incident?.assigned_firefighters?.ids.filter(
       (ff) => ff._id.toString() !== firefighterId
     );
 
@@ -691,6 +694,59 @@ export const getSingleIncidentAssignedToFirefighter = async (
     });
   } catch (error) {
     console.error("Error fetching incident:", error);
+    next(error);
+  }
+};
+
+export const markIncidentAsCompleted = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+    const { notes, responseTime, leaderId } = req.body;
+
+    const leader = await Firefighter.findById(leaderId);
+    if (!leader) {
+      return next(new AppError("Un Authoritized", 401));
+    }
+
+    const incident = await Incident.findByIdAndUpdate(
+      id,
+      {
+        status: "completed",
+        completedAt: new Date(),
+        completion_notes: notes,
+        // actualResponseTime: responseTime,
+        // completedBy: req.user?.id,
+      },
+      { new: true }
+    ).populate("assigned_firefighters.ids");
+
+    if (!incident) {
+      return next(new AppError("Incident not found", 404));
+    }
+
+    // Update assigned firefighters status back to available
+    if (
+      incident.assigned_firefighters &&
+      incident.assigned_firefighters.ids.length > 0
+    ) {
+      await Firefighter.updateMany(
+        { _id: { $in: incident.assigned_firefighters.ids.map((f) => f._id) } },
+        { status: "available" }
+      );
+    }
+
+    // req.io?.emit("incident-completed", incident);
+
+    res.json({
+      success: true,
+      data: incident,
+      message: "Incident marked as completed",
+    });
+  } catch (error) {
     next(error);
   }
 };

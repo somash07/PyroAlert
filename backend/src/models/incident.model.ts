@@ -16,7 +16,10 @@ export interface IIncident extends Document {
     | "completed"
     | "acknowledged"
     | "unassigned";
-  assigned_firefighters?: mongoose.Types.ObjectId[];
+  assigned_firefighters?: {
+    leaderId: mongoose.Types.ObjectId;
+    ids: mongoose.Types.ObjectId[];
+  };
   assigned_department?: mongoose.Types.ObjectId;
   requested_department?: mongoose.Types.ObjectId;
   notes?: string;
@@ -62,9 +65,10 @@ const IncidentSchema: Schema = new Schema(
       ],
       default: "pending_response",
     },
-    assigned_firefighters: [
-      { type: Schema.Types.ObjectId, ref: "Firefighter" },
-    ],
+    assigned_firefighters: {
+      leaderId: { type: Schema.Types.ObjectId, ref: "Firefighter" },
+      ids: [{ type: Schema.Types.ObjectId, ref: "Firefighter" }],
+    },
     assigned_department: { type: Schema.Types.ObjectId, ref: "User" },
     requested_department: { type: Schema.Types.ObjectId, ref: "User" },
     notes: { type: String },
