@@ -7,6 +7,7 @@ import { AppError } from "../utils/AppError";
 import { Firefighter } from "../models/fire-fighters.model";
 import { sendCode } from "../utils/sendCode";
 import { maileType } from "../types/mailType";
+import { AuthRequest } from "../middlewares/auth.middleware";
 
 // Function to calculate distance between two coordinates using Haversine formula
 function calculateDistance(
@@ -597,9 +598,7 @@ export const getAllIncidentsAssignedToFirefighter = async (
 
     const incidents = await Incident.find({
       assigned_firefighters: firefighterId,
-    }).populate("assigned_firefighters");
-
-  
+    });
 
     const incidentToSend = incidents.map((i) => ({
       _id: i._id,
@@ -628,23 +627,38 @@ export const getAllIncidentsAssignedToFirefighter = async (
 };
 
 export const getSingleIncidentAssignedToFirefighter = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { incidentId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(incidentId)) {
-      return next(new AppError("Invalid incident ID", 400));
+    const firefighterId = req.body.firefighterId || "";
+
+    if (
+      !mongoose.Types.ObjectId.isValid(incidentId) ||
+      !mongoose.Types.ObjectId.isValid(firefighterId)
+    ) {
+      return next(new AppError("Invalid ID provided", 400));
     }
 
-    console.log(`Fetching incident: ${incidentId}`);
-    const incident = await Incident.findById(incidentId).populate(
-      "assigned_firefighters name contact"
-    );
+    const incident = await Incident.findOne({
+      _id: incidentId,
+      assigned_firefighters: firefighterId,
+    }).populate({
+      path: "assigned_firefighters",
+      select: "name contact email image",
+    });
+
     if (!incident) {
-      return next(new AppError("Incident not found", 404));
+      return next(
+        new AppError("Incident not found or not assigned to firefighter", 404)
+      );
     }
+
+    const otherFirefighters = incident?.assigned_firefighters?.filter(
+      (ff) => ff._id.toString() !== firefighterId
+    );
 
     const incidentToSend = {
       _id: incident._id,
@@ -652,7 +666,7 @@ export const getSingleIncidentAssignedToFirefighter = async (
       location: incident.location,
       timestamp: incident.timestamp,
       status: incident.status,
-      assigned_department: incident.assigned_department,
+      assigned_firefighters: otherFirefighters,
       geo_location: {
         long: incident.geo_location?.coordinates[0],
         lat: incident.geo_location?.coordinates[1],
@@ -661,12 +675,13 @@ export const getSingleIncidentAssignedToFirefighter = async (
       device_name: incident.additional_info?.device_name || "Unknown",
       notes: incident.notes || "No notes provided",
     };
-console.log("Incident to send:", incidentToSend);
+
     res.status(200).json({
       success: true,
       data: incidentToSend,
     });
   } catch (error) {
+    console.error("Error fetching incident:", error);
     next(error);
   }
 };
