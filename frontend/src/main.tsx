@@ -32,6 +32,7 @@ import Firefighters from "./pages/admin/system/firefighters/index.tsx";
 import Departments from "./pages/admin/system/departments/index.tsx";
 import Clients from "./pages/admin/system/clients/index.tsx";
 import FirefighterPasswordReset from "./pages/FirefighterPasswordReset.tsx";
+import ForgotPassword from "./pages/ForgotPassword.tsx";
 
 const router = createBrowserRouter([
   {
@@ -135,6 +136,10 @@ const router = createBrowserRouter([
   {
     path: "/reset-password",
     element: <FirefighterPasswordReset />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
   },
   {
     path: "*",
