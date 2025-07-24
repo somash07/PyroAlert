@@ -9,6 +9,7 @@ import {
   getAllIncidentsAssignedToFirefighter,
   getPendingIncidents,
   getSingleIncidentAssignedToFirefighter,
+  markIncidentAsCompleted,
   respondToIncident,
   updateIncidentStatus,
 } from "../controllers/alert.controller";
@@ -84,4 +85,6 @@ router.post(
   "/getSingleIncidentAssignedToFirefighter/:incidentId",
   getSingleIncidentAssignedToFirefighter
 );
+
+router.post("/markIncidentAsCompleted/:id", markIncidentAsCompleted);
 export { router as alertRoutes };
