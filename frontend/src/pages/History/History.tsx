@@ -17,7 +17,6 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import type { Firefighter, Incident } from "../../types";
-import { ThermometerIcon } from "lucide-react";
 
 const History: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -182,37 +181,31 @@ const History: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
                           <h3 className="text-lg font-medium text-gray-900">
-                            ✅ Completed Fire Incident
+                            Completed Fire Incident
                           </h3>
                           <span className="text-sm text-gray-500">
-                            #{incident._id.slice(-8)}
+                            #{incident._id.slice(-6)}
                           </span>
                         </div>
 
                         <div className="space-y-1 text-sm text-gray-600">
                           <div className="flex items-center">
-                            <MapPinIcon className="h-4 w-4 mr-1" />
+                            <a
+                              href={`https://www.google.com/maps?q=${incident.geo_location?.coordinates[1]},${incident.geo_location?.coordinates[0]}`}
+                            >
+                              <MapPinIcon className="h-4 w-4 mr-1" />
+                            </a>
                             {incident.location}
                           </div>
                           <div className="flex items-center">
                             <CalendarIcon className="h-4 w-4 mr-1" />
                             {new Date(incident.timestamp).toLocaleString()}
                           </div>
-                          <div className="flex items-center">
-                            <ThermometerIcon className="h-4 w-4 mr-1" />
-                            Temp: {incident.temperature}°C
-                          </div>
                         </div>
                       </div>
                     </div>
 
                     <div className="text-right">
-                      {incident.confidence && (
-                        <div className="text-xs text-gray-500 mb-1">
-                          AI Confidence:{" "}
-                          {(incident.confidence * 100).toFixed(1)}%
-                        </div>
-                      )}
                       <span className="text-xs bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full font-medium">
                         Completed
                       </span>

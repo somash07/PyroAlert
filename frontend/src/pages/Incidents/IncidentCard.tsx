@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/store/store";
 import { loadActiveIncidents } from "@/store/slices/incidentsSlice";
-import { FaSpinner } from "react-icons/fa";
 import { DotLoader } from "react-spinners";
 
 interface IncidentCardProps {

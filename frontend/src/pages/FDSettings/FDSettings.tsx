@@ -51,14 +51,13 @@ interface ResponseSettings {
 
 interface SystemSettings {
   aiDetectionEnabled: boolean
-  confidenceThreshold: number
   cameraMonitoring: boolean
   realTimeAlerts: boolean
   dataRetentionDays: number
   backupFrequency: string
 }
 
-const Settings: React.FC = () => {
+const FDSettings: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user)
   const [activeTab, setActiveTab] = useState("department")
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle")
@@ -698,4 +697,4 @@ const Settings: React.FC = () => {
   )
 }
 
-export default Settings
+export default FDSettings

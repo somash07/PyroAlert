@@ -353,10 +353,10 @@ export const getPendingIncidents = async (req: Request, res: Response) => {
 export const getActiveIncidents = async (req: Request, res: Response) => {
   try {
     const activeStatuses = [
-      "in_progress",
       "acknowledged",
       "assigned",
       "dispatched",
+      "completed",
     ];
     const incidents = await Incident.find({ status: { $in: activeStatuses } })
       .populate("assigned_department", "username address contact")

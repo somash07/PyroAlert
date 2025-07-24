@@ -7,7 +7,6 @@ import Incidents from "@/pages/Incidents/Incidents";
 import Firefighters from "@/pages/Firefighters/Firefighters";
 import MapView from "@/pages/MapView/MapView";
 import History from "@/pages/History/History";
-import { Settings } from "lucide-react";
 import {
   HomeIcon,
   ExclamationTriangleIcon,
@@ -16,6 +15,7 @@ import {
   ClockIcon,
   CogIcon,
 } from "@heroicons/react/24/outline";
+import FDSettings from "@/pages/FDSettings/FDSettings";
 
 const menuItems = [
   { id: "dashboard", label: "Dashboard", icon: HomeIcon },
