@@ -29,6 +29,9 @@ const PendingRequestCard: React.FC<{
 
       <div className="text-xs text-gray-600 space-y-1 mb-3">
         <p>
+          <b>Id: #</b>{incident._id.slice(-6)}
+        </p>
+        <p>
           <b>Time: </b> {new Date(incident.timestamp).toLocaleString()}
         </p>
         <p>
