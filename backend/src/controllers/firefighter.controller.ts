@@ -418,9 +418,7 @@ export const sendFirefighterPasswordReset = async (
     await firefighter.save();
 
     // Send password reset email
-    const resetUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/forgot-password?token=${resetToken}&email=${email}&type=firefighter`;
+    const resetUrl = `https://pyro-alert.vercel.ap/forgot-password?token=${resetToken}&email=${email}&type=firefighter`;
 
     try {
       await sendCode(email, resetUrl, maileType.FIREFIGHTER_PASSWORD_RESET);
