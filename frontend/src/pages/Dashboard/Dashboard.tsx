@@ -92,7 +92,7 @@ const Dashboard: React.FC = () => {
   }, [pendingRequests, activeIncidents, firefighters, storedDepartmentId]);
 
   useEffect(() => {
-    const socket: Socket = io("http://localhost:8080");
+    const socket: Socket = io("https://pyroalert-tdty.onrender.com");
 
     socket.on("NEW_INCIDENT_REQUEST", (incident: Incident) => {
       // console.log(incident);

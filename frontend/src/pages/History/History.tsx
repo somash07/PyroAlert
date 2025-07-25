@@ -34,7 +34,7 @@ const History: React.FC = () => {
   );
 
   useEffect(() => {
-    const socket = io("http://localhost:8080"); 
+    const socket = io("https://pyroalert-tdty.onrender.com"); 
 
     socket.on("INCIDENT_COMPLETED", () => {
       dispatch(loadAllIncidents()); 
@@ -45,7 +45,7 @@ const History: React.FC = () => {
     };
   }, [dispatch]);
 
-  
+
   const storedUser = localStorage.getItem("userInfo");
   const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
 
