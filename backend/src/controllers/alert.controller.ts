@@ -8,6 +8,7 @@ import { Firefighter } from "../models/fire-fighters.model";
 import { sendCode } from "../utils/sendCode";
 import { maileType } from "../types/mailType";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { io } from "../app";
 
 // Function to calculate distance between two coordinates using Haversine formula
 function calculateDistance(
@@ -479,8 +480,8 @@ export const assignFirefighters = async (
       { status: "busy" }
     );
 
-    req.io?.emit("incident-updated", incident);
-    req.io?.emit("firefighters-assigned", {
+    io?.emit("incident-updated", incident);
+    io?.emit("firefighters-assigned", {
       incidentId: incident._id,
       firefighters,
     });
@@ -537,7 +538,7 @@ export const confirmAndDispatch = async (
       dispatchedAt: new Date(),
     });
 
-    req.io?.emit("firefighters-dispatched", incident);
+    io?.emit("firefighters-dispatched", incident);
 
     res.json({
       success: true,
@@ -583,7 +584,7 @@ export const completeIncident = async (
       );
     }
 
-    // req.io?.emit("incident-completed", incident);
+    // io?.emit("incident-completed", incident);
 
     res.json({
       success: true,
@@ -743,7 +744,7 @@ export const markIncidentAsCompleted = async (
       );
     }
 
-    req.io?.emit("INCIDENT_COMPLETED", incident);
+    io?.emit("INCIDENT_COMPLETED", incident);
 
     res.json({
       success: true,

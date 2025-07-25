@@ -23,6 +23,7 @@ export const getAdminFireFighters = async (
 
 import mongoose from "mongoose";
 import { User } from "../models/user.model";
+import { io } from "../app";
 
 export const addFirefighterAdmin = async (
   req: Request,
@@ -75,7 +76,8 @@ export const addFirefighterAdmin = async (
 
     await firefighter.save();
 
-    req.io?.emit("firefighter-added", firefighter);
+    
+    io?.emit("firefighter-added", firefighter);
 
     res.status(201).json({
       success: true,
@@ -200,7 +202,8 @@ export const addDepartmentAdmin = async (
 
     await department.save();
 
-    req.io?.emit("department-added", department);
+    
+    io?.emit("department-added", department);
 
     res.status(201).json({
       success: true,

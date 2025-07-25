@@ -12,6 +12,7 @@ import { User } from "../models/user.model";
 import asyncHandler from "../utils/asyncHandeler";
 import { generateAccessToken } from "../utils/generateTokens";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { io } from "../app";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -192,7 +193,7 @@ export const createFirefighter = async (
       // Don't fail the request if email fails
     }
 
-    // req.io?.emit("firefighter-added", firefighter);
+    // io?.emit("firefighter-added", firefighter);
 
     res.status(201).json({
       success: true,
@@ -237,7 +238,7 @@ export const updateFirefighter = async (
       return next(new AppError("Firefighter not found", 404));
     }
 
-    // req.io?.emit("firefighter-updated", firefighter);
+    // io?.emit("firefighter-updated", firefighter);
 
     res.json({
       success: true,
@@ -261,7 +262,7 @@ export const deleteFirefighter = async (
       return next(new AppError("Firefighter not found", 404));
     }
 
-    req.io?.emit("firefighter-deleted", { id: req.params.id });
+    io?.emit("firefighter-deleted", { id: req.params.id });
 
     res.json({
       success: true,
@@ -294,7 +295,7 @@ export const updateFirefighterStatus = async (
       return next(new AppError("Firefighter not found", 404));
     }
 
-    req.io?.emit("firefighter-status-updated", firefighter);
+    io?.emit("firefighter-status-updated", firefighter);
 
     res.json({
       success: true,
