@@ -503,7 +503,6 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-
 // const toggleVolunteerMode = asyncHandler(
 //   async (req: AuthRequest, res: Response) => {
 //     const { isVolunteer } = req.body;
@@ -535,15 +534,61 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
 //   }
 // );
 
-
 const getAllFireDepartments = async (req: Request, res: Response) => {
   try {
-    const departments = await User.find({ type: "Firedepartment" }).select("username email location");
+    const departments = await User.find({ type: "Firedepartment" }).select(
+      "username email location"
+    );
     return res.status(200).json({ success: true, data: departments });
   } catch (err) {
-    return res.status(500).json({ success: false, message: "Failed to fetch departments" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch departments" });
   }
 };
+
+export const updateDepartmentSettings = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const userId = req.user._id;
+    const {
+      username,
+      email,
+      password,
+      lat,
+      lng,
+    } = req.body;
+
+    const department = await User.findById(userId);
+
+    if (!department || department.type !== "Firedepartment") {
+      return res.status(404).json({
+        success: false,
+        message: "Department not found",
+      });
+    }
+
+    if (username) department.username = username;
+    if (email) department.email = email;
+    if (lat && lng) department.location = { lat, lng };
+
+    if (password && password.length >= 6) {
+      const hashed = await bcrypt.hash(password, 10);
+      department.password = hashed;
+    }
+
+    await department.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Department settings updated successfully",
+      data: {
+        _id: department._id,
+        username: department.username,
+        email: department.email,
+    });
+  }
+);
+
 
 
 export {

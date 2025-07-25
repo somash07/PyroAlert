@@ -184,7 +184,7 @@ export const createFirefighter = async (
       address,
       departmentId,
       status,
-      image: imagePath,
+      x : imagePath,
       resetPasswordToken,
       resetPasswordExpiry,
     });

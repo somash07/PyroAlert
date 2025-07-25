@@ -9,6 +9,7 @@ import {
   refreshAccessToken, 
   adminLoginHandler,
   getAllFireDepartments,
+  updateDepartmentSettings,
 } from "../controllers/user.controller";
 import { authenticateWithJwt, authorize } from "../middlewares/auth.middleware";
 import asyncHandler from "../utils/asyncHandeler";
@@ -66,6 +67,9 @@ router.get(
   authorize(["Admin"]),
   getAllClientsAdmin
 );
+
+
+router.put("/departments/settings", authenticateWithJwt, updateDepartmentSettings);
 
 router.get("/departments", asyncHandler(getAllFireDepartments));
 
