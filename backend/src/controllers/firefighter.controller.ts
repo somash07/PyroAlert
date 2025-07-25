@@ -651,6 +651,8 @@ export const getFireFighterUserDetailById = async (
     name: firefighter.name,
     email: firefighter.email,
     status: firefighter.status,
+    contact: firefighter.contact,
+    image: firefighter.image,
   };
 
   res.status(200).json({
