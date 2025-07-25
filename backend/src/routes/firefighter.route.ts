@@ -21,7 +21,7 @@ import {
 import mongoose from "mongoose";
 import { AppError } from "../utils/AppError";
 import { body } from "express-validator";
-import upload from "../middlewares/multer.middleware";
+import {upload} from "../middlewares/multer.middleware";
 import {
   addFirefighterAdmin,
   getAdminFireFighters,

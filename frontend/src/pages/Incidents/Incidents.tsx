@@ -47,10 +47,22 @@ const Incidents: React.FC = () => {
     return () => clearInterval(refreshInterval);
   }, [dispatch, storedDepartmentId]);
 
-  const handleAcceptIncident = (incidentId: string, departmentId: string) => {
-    dispatch(
+  const handleAcceptIncident = async (
+    incidentId: string,
+    departmentId: string
+  ) => {
+    return dispatch(
       respondToIncidentThunk({ id: incidentId, departmentId, action: "accept" })
-    );
+    ).unwrap();
+  };
+
+  const handleRejectIncident = async (
+    incidentId: string,
+    departmentId: string
+  ) => {
+    return dispatch(
+      respondToIncidentThunk({ id: incidentId, departmentId, action: "reject" })
+    ).unwrap();
   };
 
   const handleAssignFirefighters = (
@@ -173,6 +185,7 @@ const Incidents: React.FC = () => {
                   setSelectedIncident(incident);
                   setShowAssignModal(true);
                 }}
+                onReject = {()=> handleRejectIncident(incident._id, storedDepartmentId)}
               />
             ))
         )}

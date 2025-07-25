@@ -273,6 +273,15 @@ const incidentSlice = createSlice({
         }
       })
 
+      .addCase(respondToIncidentThunk.pending, (state) => {
+        state.loading = true;
+      })
+      
+      .addCase(respondToIncidentThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to respond to incident";
+      })
+
       .addCase(respondToIncidentThunk.fulfilled, (state, action) => {
         state.pending = state.pending.filter(
           (i) => i._id !== action.payload.id

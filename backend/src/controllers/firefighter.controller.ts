@@ -13,6 +13,8 @@ import asyncHandler from "../utils/asyncHandeler";
 import { generateAccessToken } from "../utils/generateTokens";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { io } from "../app";
+import uploadOnCloudinary from "../utils/cloudinary";
+import fs from "fs";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -153,10 +155,18 @@ export const createFirefighter = async (
     }
 
     let imagePath = "";
-    if (req.file?.filename) {
-      imagePath = `${req.protocol}://${req.get("host")}/uploads/fighters/${
-        req.file.filename
-      }`;
+
+    if (req.file?.path) {
+      console.log("📦 Received file:", req.file.path);
+      const cloudinaryResponse = await uploadOnCloudinary(req.file.path);
+
+      if (cloudinaryResponse?.url) {
+        imagePath = cloudinaryResponse.url;
+      }
+
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
     }
 
     // Generate reset password token

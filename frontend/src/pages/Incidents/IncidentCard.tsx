@@ -5,24 +5,24 @@ import {
   FireIcon,
   MapPinIcon,
   ClockIcon,
-  CheckIcon,
   XMarkIcon,
-  ArrowRightIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { MapPin } from "lucide-react";
+import { CiCircleCheck } from "react-icons/ci";
+import { CheckCircle, MapPin, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { confirmAndSend } from "@/services/incidentService";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/store/store";
 import { loadActiveIncidents } from "@/store/slices/incidentsSlice";
-import { FaSpinner } from "react-icons/fa";
 import { DotLoader } from "react-spinners";
+import { GiSmokeBomb } from "react-icons/gi";
 
 interface IncidentCardProps {
   incident: Incident;
   onAccept: (id: string) => void;
+  onReject: (id: string) => void;
   onAssign: (incident: Incident) => void;
 }
 
@@ -30,12 +30,11 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
   incident,
   onAccept,
   onAssign,
+  onReject,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
 
-  const {loading} = useSelector(
-      (state: RootState) => state.incidents
-    );
+  const { loading } = useSelector((state: RootState) => state.incidents);
 
   const storedUser = localStorage.getItem("userInfo");
   const storedUserLat = storedUser ? JSON.parse(storedUser)?.lat : null;
@@ -99,10 +98,16 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center">
-          <FireIcon className="h-6 w-6 text-red-500 mr-3" />
+          {incident.alert_type === "smoke" ? (
+            <GiSmokeBomb size={40} />
+          ) : (
+            <FireIcon className="h-6 w-6 text-red-500 mr-3" />
+          )}
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              Fire Detected
+              {incident.alert_type === "smoke"
+                ? "Smoke Detected"
+                : "Fire Detected"}
             </h3>
             <span
               className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
@@ -168,12 +173,18 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
         <div className="flex gap-2">
           <Button
             onClick={() => onAccept(incident._id)}
-            className="bg-green-600 hover:bg-green-700 text-white text-sm"
+            className="bg-green-600 hover:bg-green-700 text-white text-sm w-[100px]"
           >
-            <CheckIcon className="h-4 w-4 mr-1" /> Accept
+            <CheckCircle className="w-4 h-4 mr-1" />
+            {loading ? <DotLoader size={10} color="#ffffff" /> : "Accept"}
           </Button>
-          <Button variant="destructive" className="text-sm">
-            <XMarkIcon className="h-4 w-4 mr-1" /> Reject
+          <Button
+            variant="destructive"
+            className="text-sm w-[100px]"
+            onClick={() => onReject(incident._id)}
+          >
+            <XCircle className="w-4 h-4 mr-1" />
+            {loading ? <DotLoader size={10} color="#ffffff" /> : "Reject"}
           </Button>
         </div>
       )}
@@ -197,7 +208,11 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
             onClick={() => handleConfirm(incident._id)}
             className="mt-2 bg-green-600 text-white"
           >
-            { loading ? <DotLoader size={10} color="#ffffff" />: "Confirm & Send to Location"}
+            {loading ? (
+              <DotLoader size={10} color="#ffffff" />
+            ) : (
+              "Confirm & Send to Location"
+            )}
           </Button>
         </div>
       )}
