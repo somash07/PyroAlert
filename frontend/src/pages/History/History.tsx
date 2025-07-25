@@ -1,5 +1,4 @@
-"use client";
-
+import { io } from "socket.io-client";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -34,6 +33,19 @@ const History: React.FC = () => {
     null
   );
 
+  useEffect(() => {
+    const socket = io("http://localhost:8080"); 
+
+    socket.on("INCIDENT_COMPLETED", () => {
+      dispatch(loadAllIncidents()); 
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [dispatch]);
+
+  
   const storedUser = localStorage.getItem("userInfo");
   const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
 

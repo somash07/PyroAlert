@@ -59,6 +59,7 @@ class SocketIOService {
       "INCIDENT_UNASSIGNED",
       "INCIDENT_UPDATED",
       "DEPARTMENT_INCIDENT_REQUEST",
+      "COMPLETED_INCIDENT"
     ]
 
     events.forEach((event) => {

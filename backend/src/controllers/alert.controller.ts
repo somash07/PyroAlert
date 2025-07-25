@@ -743,7 +743,7 @@ export const markIncidentAsCompleted = async (
       );
     }
 
-    // req.io?.emit("incident-completed", incident);
+    req.io?.emit("INCIDENT_COMPLETED", incident);
 
     res.json({
       success: true,
