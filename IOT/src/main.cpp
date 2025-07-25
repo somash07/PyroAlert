@@ -15,7 +15,7 @@
 
 #define WIFI_SSID       "imyogen_2"
 #define WIFI_PASS       "imyogen@123456"
-#define API_URL         "http://192.168.1.68:8080/api/v1/alert"
+#define API_URL         "http://pyroalert-tdty.onrender.com/api/v1/alert"
 #define FLAME_GPIO      GPIO_NUM_6
 #define SMOKE_ADC_CH    ADC1_CHANNEL_1
 #define SMOKE_THRESHOLD 1500
