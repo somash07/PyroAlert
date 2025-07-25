@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Flame, Users, Clock, CalendarDays, AlertTriangle } from "lucide-react";
 import {
   AlertDialog,
@@ -43,9 +43,9 @@ const Dashboard: React.FC = () => {
   const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
   const storedUsername = storedUser ? JSON.parse(storedUser)?.username : "";
 
-  // console.log(storedDepartmentId);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const audio = new Audio("/alert.mp3");
+  // console.log(storedDepartmentId);
 
   const [stats, setStats] = useState({
     activeIncidents: 0,
@@ -92,13 +92,13 @@ const Dashboard: React.FC = () => {
   }, [pendingRequests, activeIncidents, firefighters, storedDepartmentId]);
 
   useEffect(() => {
+    audioRef.current = new Audio("/alert.mp3");
+
     const socket: Socket = io("https://pyroalert-tdty.onrender.com");
 
     socket.on("NEW_INCIDENT_REQUEST", (incident: Incident) => {
-      // console.log(incident);
-
       if (incident.requested_department?._id === storedDepartmentId) {
-        audio.play().catch((error) => {
+        audioRef.current?.play().catch((error) => {
           console.error("Failed to play sound:", error);
         });
         toast(
@@ -107,6 +107,7 @@ const Dashboard: React.FC = () => {
           ).toFixed(0)}%)`
         );
       }
+
       dispatch(loadPendingIncidents(storedDepartmentId));
     });
 
@@ -131,7 +132,7 @@ const Dashboard: React.FC = () => {
     return () => {
       socket.disconnect();
     };
-  }, [dispatch, storedUsername, storedDepartmentId, audio]);
+  }, [dispatch, storedUsername, storedDepartmentId]);
 
   const handleAccept = (id: string, deptId: string) => {
     dispatch(
@@ -212,7 +213,7 @@ const Dashboard: React.FC = () => {
                   handleAccept(
                     incident._id.toString(),
                     storedDepartmentId.toString()
-                  ) 
+                  )
                 }
                 onReject={() =>
                   handleReject(
