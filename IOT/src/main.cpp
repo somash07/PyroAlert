@@ -20,7 +20,7 @@
 #define SMOKE_ADC_CH    ADC1_CHANNEL_1
 #define SMOKE_THRESHOLD 1500
 #define DEVICE_NAME     "ESP32 Fire Monitor"
-
+#define SMOKE_HIGH_THRESHOLD 2500
 static const char *TAG = "FIRE_DETECT";
 bool alert_sent = false;
 
@@ -100,7 +100,6 @@ static void send_fire_alert_http(void) {
         "\"source_device_id\": \"esp32-c6-001\","
         "\"geo_location\": {\"type\": \"Point\", \"coordinates\": [85.345002, 27.6499376]},"
         "\"additional_info\": {"
-            "\"camera_id\": \"camera_001\","
             "\"detection_method\": \"MQ2 + Flame\","
             "\"alert_source\": \"automated_detection\","
             "\"device_name\": \"%s\""
@@ -146,7 +145,7 @@ extern "C" void app_main(void) {
     adc1_config_width(ADC_WIDTH_BIT_12);
     adc1_config_channel_atten(SMOKE_ADC_CH, ADC_ATTEN_DB_11);
 
-   while (true) {
+       while (true) {
         int smoke_val = adc1_get_raw(SMOKE_ADC_CH);
         int flame_val = gpio_get_level(FLAME_GPIO); // 0 = flame detected
 
@@ -155,32 +154,55 @@ extern "C" void app_main(void) {
         static time_t detection_start_time = 0;
         static bool waiting_for_cooldown = false;
 
-        bool smoke_detected = smoke_val > SMOKE_THRESHOLD;
-        bool flame_detected = flame_val == 0;
         time_t now = time(NULL);
+        bool flame_detected = (flame_val == 0);
+        bool high_smoke_detected = (smoke_val > 2500);
+        bool low_smoke_detected = (smoke_val > 1500);
 
-        if (smoke_detected && flame_detected) {
-            if (detection_start_time == 0) {
-                detection_start_time = now;
-                ESP_LOGI(TAG, "Both sensors detected fire, starting timer...");
+        if (!waiting_for_cooldown) {
+            // Fast path: Flame + High Smoke (3 sec)
+            if (flame_detected && high_smoke_detected) {
+                if (detection_start_time == 0) {
+                    detection_start_time = now;
+                    ESP_LOGI(TAG, "🔥 Fast path started (flame + high smoke)");
+                }
+                if ((now - detection_start_time) >= 3) {
+                    ESP_LOGW(TAG, "🔥🔥 FIRE CONFIRMED (Fast path)!");
+                    send_fire_alert_http();
+                    waiting_for_cooldown = true;
+                }
             }
 
-            // If both sensors are true for 6 seconds
-            if ((now - detection_start_time) >= 6 && !waiting_for_cooldown) {
-                ESP_LOGW(TAG, "🔥🔥🔥 FIRE CONFIRMED for 6 seconds! Sending alert.");
-                send_fire_alert_http();
-                waiting_for_cooldown = true; // Block repeated alerts
+            // Slow path: Only smoke (12 sec)
+            else if (low_smoke_detected && !flame_detected) {
+                if (detection_start_time == 0) {
+                    detection_start_time = now;
+                    ESP_LOGI(TAG, "⚠️ Slow path started (only smoke)");
+                }
+                if ((now - detection_start_time) >= 12) {
+                    ESP_LOGW(TAG, "🔥🔥 FIRE CONFIRMED (Slow path)!");
+                    send_fire_alert_http();
+                    waiting_for_cooldown = true;
+                }
             }
 
-        } else {
-            // Reset if either one is false
-            if (detection_start_time != 0) {
-                ESP_LOGI(TAG, "Detection interrupted. Resetting timer.");
+            // No valid condition → reset
+            else {
+                if (detection_start_time != 0) {
+                    ESP_LOGI(TAG, "🟡 Detection condition changed. Timer reset.");
+                }
+                detection_start_time = 0;
             }
-            detection_start_time = 0;
+        }
+
+        // Reset cooldown when normal again
+        if (!low_smoke_detected && !flame_detected && waiting_for_cooldown) {
+            ESP_LOGI(TAG, "✅ Environment normal. Cooldown reset.");
             waiting_for_cooldown = false;
+            detection_start_time = 0;
         }
 
         vTaskDelay(pdMS_TO_TICKS(1000));  // check every second
     }
+
 }
