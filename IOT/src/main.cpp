@@ -15,7 +15,7 @@
 
 #define WIFI_SSID       "imyogen_2"
 #define WIFI_PASS       "imyogen@123456"
-#define API_URL         "http://192.168.1.68:8080/api/v1/alert"
+#define API_URL         "https://pyroalert-tdty.onrender.com/api/v1/alert"
 #define FLAME_GPIO      GPIO_NUM_6
 #define SMOKE_ADC_CH    ADC1_CHANNEL_1
 #define SMOKE_THRESHOLD 1500
@@ -23,6 +23,29 @@
 #define SMOKE_HIGH_THRESHOLD 2500
 static const char *TAG = "FIRE_DETECT";
 bool alert_sent = false;
+
+const char* root_ca_cert = "-----BEGIN CERTIFICATE-----\n"
+"MIIDejCCAmKgAwIBAgIQf+UwvzMTQ77dghYQST2KGzANBgkqhkiG9w0BAQsFADBX\n"
+"MQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEQMA4GA1UE\n"
+"CxMHUm9vdCBDQTEbMBkGA1UEAxMSR2xvYmFsU2lnbiBSb290IENBMB4XDTIzMTEx\n"
+"NTAzNDMyMVoXDTI4MDEyODAwMDA0MlowRzELMAkGA1UEBhMCVVMxIjAgBgNVBAoT\n"
+"GUdvb2dsZSBUcnVzdCBTZXJ2aWNlcyBMTEMxFDASBgNVBAMTC0dUUyBSb290IFI0\n"
+"MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE83Rzp2iLYK5DuDXFgTB7S0md+8Fhzube\n"
+"Rr1r1WEYNa5A3XP3iZEwWus87oV8okB2O6nGuEfYKueSkWpz6bFyOZ8pn6KY019e\n"
+"WIZlD6GEZQbR3IvJx3PIjGov5cSr0R2Ko4H/MIH8MA4GA1UdDwEB/wQEAwIBhjAd\n"
+"BgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDwYDVR0TAQH/BAUwAwEB/zAd\n"
+"BgNVHQ4EFgQUgEzW63T/STaj1dj8tT7FavCUHYwwHwYDVR0jBBgwFoAUYHtmGkUN\n"
+"l8qJUC99BM00qP/8/UswNgYIKwYBBQUHAQEEKjAoMCYGCCsGAQUFBzAChhpodHRw\n"
+"Oi8vaS5wa2kuZ29vZy9nc3IxLmNydDAtBgNVHR8EJjAkMCKgIKAehhxodHRwOi8v\n"
+"Yy5wa2kuZ29vZy9yL2dzcjEuY3JsMBMGA1UdIAQMMAowCAYGZ4EMAQIBMA0GCSqG\n"
+"SIb3DQEBCwUAA4IBAQAYQrsPBtYDh5bjP2OBDwmkoWhIDDkic574y04tfzHpn+cJ\n"
+"odI2D4SseesQ6bDrarZ7C30ddLibZatoKiws3UL9xnELz4ct92vID24FfVbiI1hY\n"
+"+SW6FoVHkNeWIP0GCbaM4C6uVdF5dTUsMVs/ZbzNnIdCp5Gxmx5ejvEau8otR/Cs\n"
+"kGN+hr/W5GvT1tMBjgWKZ1i4//emhA1JG1BbPzoLJQvyEotc03lXjTaCzv8mEbep\n"
+"8RqZ7a2CPsgRbuvTPBwcOMBBmuFeU88+FSBX6+7iP0il8b4Z0QFqIwwMHfs/L6K1\n"
+"vepuoxtGzi4CZ68zJpiq1UvSqTbFJjtbD4seiMHl\n"
+"-----END CERTIFICATE-----";
+
 
 // Wi-Fi Event Handler
 static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
@@ -67,7 +90,7 @@ void initialize_sntp(void) {
 
     // Wait until time is set
     time_t now = 0;
-    struct tm timeinfo = {0};
+    struct tm timeinfo = {};
     int retry = 0;
     const int retry_count = 10;
 
@@ -108,10 +131,12 @@ static void send_fire_alert_http(void) {
         now, 0.95f, DEVICE_NAME
     );
 
-    esp_http_client_config_t config = {
-        .url = API_URL,
-        .method = HTTP_METHOD_POST
-    };
+    esp_http_client_config_t config = {};
+config.url = API_URL;
+config.method = HTTP_METHOD_POST;
+config.cert_pem = root_ca_cert;
+
+
 
     esp_http_client_handle_t client = esp_http_client_init(&config);
     esp_http_client_set_header(client, "Content-Type", "application/json");
@@ -143,7 +168,7 @@ extern "C" void app_main(void) {
 
     // MQ2 smoke sensor setup
     adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten(SMOKE_ADC_CH, ADC_ATTEN_DB_11);
+    adc1_config_channel_atten(SMOKE_ADC_CH, ADC_ATTEN_DB_12);
 
        while (true) {
         int smoke_val = adc1_get_raw(SMOKE_ADC_CH);
