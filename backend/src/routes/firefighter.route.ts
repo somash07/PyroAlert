@@ -16,6 +16,7 @@ import {
   updateFirefighterProfile,
   changePassword,
   logoutFirefighter,
+  getFireFighterUserDetailById,
 } from "../controllers/firefighter.controller";
 import mongoose from "mongoose";
 import { AppError } from "../utils/AppError";
@@ -101,5 +102,6 @@ router.get("/me", authenticateWithJwt, getFirefighterProfile);
 router.patch("/profile", authenticateWithJwt, updateFirefighterProfile);
 router.patch("/change-password", authenticateWithJwt, changePassword);
 router.post("/logout", authenticateWithJwt, logoutFirefighter);
+router.get("/getFireFighterUserDetailById/:id", getFireFighterUserDetailById);
 
 export { router as fireFighterRoute };

@@ -215,7 +215,7 @@ export const updateFirefighter = async (
       return next(new AppError("Validation failed", 400, errors.array()));
     }
 
-    const { name, email, contact, department, status, address} = req.body;
+    const { name, email, contact, department, status, address } = req.body;
 
     if (email) {
       const existingFirefighter = await Firefighter.findOne({
@@ -623,3 +623,27 @@ export const logoutFirefighter = asyncHandler(
     });
   }
 );
+
+export const getFireFighterUserDetailById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const firefighterId = req.params.id;
+
+  const firefighter = await Firefighter.findById(firefighterId);
+  if (!firefighter) {
+    throw new AppError("Firefighter not found", 404);
+  }
+
+  const dataToSend = {
+    name: firefighter.name,
+    email: firefighter.email,
+    status: firefighter.status,
+  };
+
+  res.status(200).json({
+    success: true,
+    data: dataToSend,
+  });
+};
