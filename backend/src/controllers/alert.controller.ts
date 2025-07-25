@@ -210,6 +210,7 @@ export const respondToIncident = async (
     }
 
     const incident = (await Incident.findById(id)
+      .select("-assigned_firefighters")
       .populate(
         "requested_department nearby_departments.department rejection_history.department",
         "username"
@@ -617,11 +618,12 @@ export const getAllIncidentsAssignedToFirefighter = async (
       timestamp: i.timestamp,
       confidence: i.confidence,
       status: i.status,
+      leaderId: i.assigned_firefighters?.leaderId,
       assigned_department: i.assigned_department,
-      geo_location: {
-        type: "Point",
-        coordinates: [85.324, 27.7172],
-      },
+      // geo_location: {
+      //   type: "Point",
+      //   coordinates: [85.324, 27.7172],
+      // },
       response_time: "5 minutes",
       notes: "Black smoke reported near school...",
     }));
@@ -656,7 +658,7 @@ export const getSingleIncidentAssignedToFirefighter = async (
       _id: incidentId,
       "assigned_firefighters.ids": firefighterId,
     }).populate({
-      path: "assigned_firefighters",
+      path: "assigned_firefighters.ids",
       select: "name contact email image",
     });
 
@@ -672,12 +674,14 @@ export const getSingleIncidentAssignedToFirefighter = async (
       (ff) => ff._id.toString() !== firefighterId
     );
 
+    console.log("Other firefighters:", otherFirefighters);
     const incidentToSend = {
       _id: incident._id,
       alert_type: incident.alert_type,
       location: incident.location,
       timestamp: incident.timestamp,
       status: incident.status,
+      leaderId: incident.assigned_firefighters?.leaderId,
       assigned_firefighters: otherFirefighters,
       geo_location: {
         long: incident.geo_location?.coordinates[0],
