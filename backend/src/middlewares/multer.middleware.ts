@@ -35,15 +35,23 @@
 
 // export default upload;
 
+import path from "path";
+import fs from "fs";
 import multer from "multer";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, `public/temp/${Date.now()}-${file.originalname}`);
+    const tempDir = path.join("public", "temp");
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    cb(null, tempDir);
   },
   filename: function (req, file, cb) {
-    cb(null, file.originalname);
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname);
   },
 });
 
 export const upload = multer({ storage });
+
