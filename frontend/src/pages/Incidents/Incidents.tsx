@@ -8,12 +8,13 @@ import {
   respondToIncidentThunk,
   selectActiveIncidents,
   selectPendingIncidents,
+  updateIncidentStatusLocal,
 } from "../../store/slices/incidentsSlice";
 import { fetchFirefightersByDepartment } from "../../store/slices/firefighterSlice";
 import IncidentCard from "./IncidentCard";
 import AssignFirefightersModal from "./AssignFirefightersModal";
 import type { Incident } from "../../types";
-import {toast} from "sonner";
+import { toast } from "sonner";
 
 const Incidents: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -57,10 +58,17 @@ const Incidents: React.FC = () => {
     firefighterIds: string[],
     leaderId: string
   ) => {
-    dispatch(assignFirefighterss({ incidentId, firefighterIds, leaderId }));
-    dispatch(loadActiveIncidents());
-    setShowAssignModal(false);
-    setSelectedIncident(null);
+    dispatch(assignFirefighterss({ incidentId, firefighterIds, leaderId }))
+      .unwrap()
+      .then(() => {
+        // Immediately reflect the status change in UI
+        dispatch(
+          updateIncidentStatusLocal({ id: incidentId, status: "assigned" })
+        );
+        dispatch(loadActiveIncidents()); // still fetch from backend to stay accurate
+        setSelectedIncident(null);
+        setShowAssignModal(false);
+      });
   };
 
   const allIncidents = [...activeIncidents, ...pendingRequests].filter(

@@ -170,6 +170,28 @@ const incidentSlice = createSlice({
     addNewIncident: (state, action: PayloadAction<Incident>) => {
       state.pending.unshift(action.payload);
     },
+
+    // ✅ Local reducer to update incident status immediately
+    updateIncidentStatusLocal: (
+      state,
+      action: PayloadAction<{ id: string; status: string }>
+    ) => {
+      const { id, status } = action.payload;
+      const target =
+        state.active.find((i) => i._id === id) ||
+        state.pending.find((i) => i._id === id);
+      if (target) {
+        target.status = status as
+          | "pending_response"
+          | "accepted"
+          | "rejected"
+          | "assigned"
+          | "dispatched"
+          | "completed"
+          | "acknowledged"
+          | "unassigned";
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -269,7 +291,8 @@ const incidentSlice = createSlice({
   },
 });
 
-export const { addNewIncident } = incidentSlice.actions;
+export const { addNewIncident, updateIncidentStatusLocal } =
+  incidentSlice.actions;
 export default incidentSlice.reducer;
 
 export const selectPendingIncidents = (state: RootState) =>
