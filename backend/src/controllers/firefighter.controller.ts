@@ -159,7 +159,9 @@ export const createFirefighter = async (
       const cloudinaryResponse = await uploadOnCloudinary(req.file.path);
       if (cloudinaryResponse?.url) {
         imagePath = cloudinaryResponse.url;
-        fs.unlinkSync(req.file.path); // delete the temp file
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
       }
     }
 
