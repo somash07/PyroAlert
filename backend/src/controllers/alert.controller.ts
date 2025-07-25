@@ -539,6 +539,7 @@ export const confirmAndDispatch = async (
     });
 
     io?.emit("firefighters-dispatched", incident);
+    io?.emit("incident-updated", incident);
 
     res.json({
       success: true,
@@ -602,15 +603,24 @@ export const getAllIncidentsAssignedToFirefighter = async (
   next: NextFunction
 ) => {
   try {
-    console.log("reached here");
     const { firefighterId } = req.params;
+
     if (!mongoose.Types.ObjectId.isValid(firefighterId)) {
       return next(new AppError("Invalid firefighter ID", 400));
     }
 
+    let statuses = req.query.status;
+    if (typeof statuses === "string") {
+      statuses = [statuses];
+    }
+
+    const allowedStatuses = statuses?.length
+      ? statuses
+      : ["assigned", "dispatched"];
+
     const incidents = await Incident.find({
       "assigned_firefighters.ids": firefighterId,
-      status: { $in: ["assigned", "dispatched", "completed"] },
+      status: { $in: allowedStatuses },
     });
 
     const incidentToSend = incidents.map((i) => ({
@@ -622,10 +632,6 @@ export const getAllIncidentsAssignedToFirefighter = async (
       status: i.status,
       leaderId: i.assigned_firefighters?.leaderId,
       assigned_department: i.assigned_department,
-      // geo_location: {
-      //   type: "Point",
-      //   coordinates: [85.324, 27.7172],
-      // },
       response_time: "5 minutes",
       notes: "Black smoke reported near school...",
     }));
