@@ -550,13 +550,7 @@ const getAllFireDepartments = async (req: Request, res: Response) => {
 export const updateDepartmentSettings = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const userId = req.user._id;
-    const {
-      username,
-      email,
-      password,
-      lat,
-      lng,
-    } = req.body;
+    const { username, email, password, lat, lng } = req.body;
 
     const department = await User.findById(userId);
 
@@ -585,11 +579,10 @@ export const updateDepartmentSettings = asyncHandler(
         _id: department._id,
         username: department.username,
         email: department.email,
+      },
     });
   }
 );
-
-
 
 export {
   signUpHandler,
