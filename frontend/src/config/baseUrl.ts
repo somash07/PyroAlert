@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 
 
 const API: AxiosInstance = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: "https://pyroalert-tdty.onrender.com",
 });
 
 API.interceptors.request.use(
