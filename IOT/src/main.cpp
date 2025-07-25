@@ -11,16 +11,17 @@
 #include "esp_http_client.h"
 #include "driver/adc.h"
 #include "driver/gpio.h"
-#include "esp_sntp.h" //added
+#include "esp_sntp.h"
 
 #define WIFI_SSID       "imyogen_2"
 #define WIFI_PASS       "imyogen@123456"
-#define API_URL         "http://pyroalert-tdty.onrender.com/api/v1/alert"
+#define API_URL         "https://pyroalert-tdty.onrender.com/api/v1/alert"
 #define FLAME_GPIO      GPIO_NUM_6
 #define SMOKE_ADC_CH    ADC1_CHANNEL_1
 #define SMOKE_THRESHOLD 1500
 #define DEVICE_NAME     "ESP32 Fire Monitor"
 #define SMOKE_HIGH_THRESHOLD 2500
+
 static const char *TAG = "FIRE_DETECT";
 bool alert_sent = false;
 
@@ -62,12 +63,11 @@ static void wifi_init(void) {
 void initialize_sntp(void) {
     ESP_LOGI(TAG, "Initializing SNTP...");
     esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
-    esp_sntp_setservername(0, "pool.ntp.org");  // You can also use a local NTP server
+    esp_sntp_setservername(0, "pool.ntp.org");
     esp_sntp_init();
 
-    // Wait until time is set
     time_t now = 0;
-    struct tm timeinfo = {0};
+    struct tm timeinfo = {};
     int retry = 0;
     const int retry_count = 10;
 
@@ -84,8 +84,8 @@ void initialize_sntp(void) {
         ESP_LOGW(TAG, "Failed to get time from SNTP.");
     }
 }
-
-
+extern const uint8_t server_cert_pem_start[] asm("_binary_server_cert_pem_start");
+extern const uint8_t server_cert_pem_end[]   asm("_binary_server_cert_pem_end");
 // Sending JSON alert to backend
 static void send_fire_alert_http(void) {
     time_t now = time(NULL);
@@ -93,25 +93,28 @@ static void send_fire_alert_http(void) {
     char post_data[1024];
     snprintf(post_data, sizeof(post_data),
         "{"
-        "\"location\": \"Factory Zone A\","
-        "\"alert_type\": \"fire\","
-        "\"timestamp\": %lld,"
-        "\"confidence\": %.2f,"
-        "\"source_device_id\": \"esp32-c6-001\","
-        "\"geo_location\": {\"type\": \"Point\", \"coordinates\": [85.345002, 27.6499376]},"
+        "\"location\": \"Factory Zone A\"," 
+        "\"alert_type\": \"fire\"," 
+        "\"timestamp\": %lld," 
+        "\"confidence\": %.2f," 
+        "\"source_device_id\": \"esp32-c6-001\"," 
+        "\"geo_location\": {\"type\": \"Point\", \"coordinates\": [85.345002, 27.6499376]}," 
         "\"additional_info\": {"
-            "\"detection_method\": \"MQ2 + Flame\","
-            "\"alert_source\": \"automated_detection\","
+            "\"detection_method\": \"MQ2 + Flame\"," 
+            "\"alert_source\": \"automated_detection\"," 
             "\"device_name\": \"%s\""
         "}"
         "}",
-        now, 0.95f, DEVICE_NAME
-    );
+        now, 0.95f, DEVICE_NAME);
 
-    esp_http_client_config_t config = {
-        .url = API_URL,
-        .method = HTTP_METHOD_POST
-    };
+    esp_http_client_config_t config = { };
+        config.url = API_URL;
+        config.method = HTTP_METHOD_POST;
+        config.cert_pem = (const char *)server_cert_pem_start;
+        config.transport_type = HTTP_TRANSPORT_OVER_SSL;  // ✅ Add this line
+
+
+   
 
     esp_http_client_handle_t client = esp_http_client_init(&config);
     esp_http_client_set_header(client, "Content-Type", "application/json");
@@ -127,27 +130,22 @@ static void send_fire_alert_http(void) {
     esp_http_client_cleanup(client);
 }
 
-// Main logic
+
 extern "C" void app_main(void) {
     ESP_LOGI(TAG, "Starting Fire Detection System");
 
-    // Init NVS and Wi-Fi
     ESP_ERROR_CHECK(nvs_flash_init());
     wifi_init();
 
-    // ✅ Initialize SNTP time sync
     initialize_sntp();
 
-    // Flame sensor setup
     gpio_set_direction(FLAME_GPIO, GPIO_MODE_INPUT);
-
-    // MQ2 smoke sensor setup
     adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten(SMOKE_ADC_CH, ADC_ATTEN_DB_11);
+    adc1_config_channel_atten(SMOKE_ADC_CH, ADC_ATTEN_DB_12);
 
-       while (true) {
+    while (true) {
         int smoke_val = adc1_get_raw(SMOKE_ADC_CH);
-        int flame_val = gpio_get_level(FLAME_GPIO); // 0 = flame detected
+        int flame_val = gpio_get_level(FLAME_GPIO);
 
         ESP_LOGI(TAG, "Smoke: %d | Flame: %s", smoke_val, flame_val == 0 ? "🔥 YES" : "✅ NO");
 
@@ -156,11 +154,10 @@ extern "C" void app_main(void) {
 
         time_t now = time(NULL);
         bool flame_detected = (flame_val == 0);
-        bool high_smoke_detected = (smoke_val > 2500);
-        bool low_smoke_detected = (smoke_val > 1500);
+        bool high_smoke_detected = (smoke_val > SMOKE_HIGH_THRESHOLD);
+        bool low_smoke_detected = (smoke_val > SMOKE_THRESHOLD);
 
         if (!waiting_for_cooldown) {
-            // Fast path: Flame + High Smoke (3 sec)
             if (flame_detected && high_smoke_detected) {
                 if (detection_start_time == 0) {
                     detection_start_time = now;
@@ -171,10 +168,7 @@ extern "C" void app_main(void) {
                     send_fire_alert_http();
                     waiting_for_cooldown = true;
                 }
-            }
-
-            // Slow path: Only smoke (12 sec)
-            else if (low_smoke_detected && !flame_detected) {
+            } else if (low_smoke_detected && !flame_detected) {
                 if (detection_start_time == 0) {
                     detection_start_time = now;
                     ESP_LOGI(TAG, "⚠️ Slow path started (only smoke)");
@@ -184,10 +178,7 @@ extern "C" void app_main(void) {
                     send_fire_alert_http();
                     waiting_for_cooldown = true;
                 }
-            }
-
-            // No valid condition → reset
-            else {
+            } else {
                 if (detection_start_time != 0) {
                     ESP_LOGI(TAG, "🟡 Detection condition changed. Timer reset.");
                 }
@@ -195,14 +186,12 @@ extern "C" void app_main(void) {
             }
         }
 
-        // Reset cooldown when normal again
         if (!low_smoke_detected && !flame_detected && waiting_for_cooldown) {
             ESP_LOGI(TAG, "✅ Environment normal. Cooldown reset.");
             waiting_for_cooldown = false;
             detection_start_time = 0;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000));  // check every second
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
-
 }
