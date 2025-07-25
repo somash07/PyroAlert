@@ -132,7 +132,7 @@ const Dashboard: React.FC = () => {
     return () => {
       socket.disconnect();
     };
-  }, [dispatch, storedUsername, storedDepartmentId, audio]);
+  }, [dispatch, storedUsername, storedDepartmentId]);
 
   const handleAccept = (id: string, deptId: string) => {
     dispatch(
