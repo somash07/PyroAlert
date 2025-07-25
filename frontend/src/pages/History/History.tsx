@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../../store/store";
 import {
+  loadActiveIncidents,
   loadAllIncidents,
   selectActiveIncidents,
 } from "../../store/slices/incidentsSlice";
@@ -50,7 +51,7 @@ const History: React.FC = () => {
   const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
 
   useEffect(() => {
-    dispatch(loadAllIncidents());
+    dispatch(loadActiveIncidents());
     dispatch(fetchFirefightersByDepartment(storedDepartmentId));
   }, [dispatch, storedDepartmentId]);
 
