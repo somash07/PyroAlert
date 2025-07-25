@@ -196,10 +196,14 @@ const MapView: React.FC = () => {
 
   const getAssignedFirefighters = (incidentId: string): Firefighter[] => {
     const incident = combined.find((i) => i._id === incidentId);
-    if (!incident?.assigned_firefighters) return [];
-    return firefighters.filter((ff) =>
-      incident.assigned_firefighters?.includes(ff._id)
+
+    if (!incident || !Array.isArray(incident.assigned_firefighters)) return [];
+
+    const assignedIds: string[] = incident.assigned_firefighters.map((ff) =>
+      typeof ff === "string" ? ff : ff._id
     );
+
+    return firefighters.filter((ff) => assignedIds.includes(ff._id));
   };
 
   const statusCounts = {
