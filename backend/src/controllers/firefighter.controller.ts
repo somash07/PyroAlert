@@ -155,13 +155,17 @@ export const createFirefighter = async (
     }
 
     let imagePath = "";
+
     if (req.file?.path) {
+      console.log("📦 Received file:", req.file.path);
       const cloudinaryResponse = await uploadOnCloudinary(req.file.path);
+
       if (cloudinaryResponse?.url) {
         imagePath = cloudinaryResponse.url;
-        if (fs.existsSync(req.file.path)) {
-          fs.unlinkSync(req.file.path);
-        }
+      }
+
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
       }
     }
 
