@@ -33,7 +33,7 @@ router.get(
 // Department management routes
 router.get(
   "/admin/departments",
-  authenticateWithJwt,
+authenticateWithJwt,
   authorize(["Admin"]),
   getAllDepartmentsAdmin
 );
