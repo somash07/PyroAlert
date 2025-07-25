@@ -1,6 +1,6 @@
 import { io, type Socket } from "socket.io-client"
 
-const SOCKET_URL = import.meta.env.SOCKET_URL || "http://localhost:8080"
+const SOCKET_URL = "https://pyroalert-tdty.onrender.com"
 
 class SocketIOService {
   private socket: Socket | null = null
