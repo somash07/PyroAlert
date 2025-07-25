@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../../store/store";
 import {
+  loadActiveIncidents,
   loadAllIncidents,
   selectActiveIncidents,
 } from "../../store/slices/incidentsSlice";
@@ -16,6 +17,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import type { Firefighter, Incident } from "../../types";
+import { fetchActiveIncidents } from "@/services/incidentService";
 
 const History: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -36,10 +38,10 @@ const History: React.FC = () => {
   const storedDepartmentId = storedUser ? JSON.parse(storedUser)?._id : "";
 
   useEffect(() => {
-    const socket = io("https://pyroalert-tdty.onrender.com"); 
+    const socket = io("https://pyroalert-tdty.onrender.com");
 
-    socket.on("INCIDENT_COMPLETED",async () => {
-      await dispatch(loadAllIncidents()); 
+    socket.on("INCIDENT_COMPLETED", async () => {
+      await dispatch(loadActiveIncidents());
     });
 
     return () => {
@@ -47,9 +49,8 @@ const History: React.FC = () => {
     };
   }, [dispatch]);
 
-
   useEffect(() => {
-    dispatch(loadAllIncidents());
+    dispatch(loadActiveIncidents());
     dispatch(fetchFirefightersByDepartment(storedDepartmentId));
   }, [dispatch, storedDepartmentId]);
 
@@ -58,7 +59,7 @@ const History: React.FC = () => {
     (incident) => incident.status === "completed"
   );
 
-  const filteredIncidents  = historyIncidents.filter((incident) => {
+  const filteredIncidents = historyIncidents.filter((incident) => {
     const matchesSearch =
       incident.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
       incident._id.toLowerCase().includes(searchTerm.toLowerCase());
