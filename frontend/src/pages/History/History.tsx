@@ -15,9 +15,12 @@ import {
   MapPinIcon,
   CalendarIcon,
   MagnifyingGlassIcon,
+  UserGroupIcon,
+  PencilIcon,
+  ClipboardDocumentCheckIcon,
 } from "@heroicons/react/24/outline";
 import type { Firefighter, Incident } from "../../types";
-import { fetchActiveIncidents } from "@/services/incidentService";
+
 
 const History: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -54,7 +57,6 @@ const History: React.FC = () => {
     dispatch(fetchFirefightersByDepartment(storedDepartmentId));
   }, [dispatch, storedDepartmentId]);
 
-  // ✅ Only completed incidents
   const historyIncidents = activeIncidents.filter(
     (incident) => incident.status === "completed"
   );
@@ -99,6 +101,17 @@ const History: React.FC = () => {
     );
   };
 
+  const calculateDuration = (start: string | Date, end: string | Date): string => {
+    const startTime = new Date(start).getTime();
+    const endTime = new Date(end).getTime();
+    const duration = endTime - startTime;
+
+    const minutes = Math.floor(duration / (1000 * 60));
+    const seconds = Math.floor((duration % (1000 * 60)) / 1000);
+
+    return `${minutes}m ${seconds}s`;
+  };
+
   if (loading && historyIncidents.length === 0) {
     return (
       <div className="p-4 sm:p-6">
@@ -118,10 +131,8 @@ const History: React.FC = () => {
         </p>
       </div>
 
-      {/* Filters */}
       <div className="bg-white rounded-lg shadow-md p-4 mb-6">
         <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search */}
           <div className="flex-1">
             <div className="relative">
               <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
@@ -135,7 +146,6 @@ const History: React.FC = () => {
             </div>
           </div>
 
-          {/* Date Filter */}
           <div className="sm:w-48">
             <select
               value={dateFilter}
@@ -151,7 +161,6 @@ const History: React.FC = () => {
         </div>
       </div>
 
-      {/* Incident List */}
       <div className="bg-white rounded-lg shadow-md">
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -177,9 +186,7 @@ const History: React.FC = () => {
             </div>
           ) : (
             filteredIncidents.map((incident) => {
-              const assignedFirefighters = getAssignedFirefighters(
-                incident._id
-              );
+              const assignedFirefighters = getAssignedFirefighters(incident._id);
 
               return (
                 <div
@@ -204,6 +211,8 @@ const History: React.FC = () => {
                           <div className="flex items-center">
                             <a
                               href={`https://www.google.com/maps?q=${incident.geo_location?.coordinates[1]},${incident.geo_location?.coordinates[0]}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
                             >
                               <MapPinIcon className="h-4 w-4 mr-1" />
                             </a>
@@ -212,6 +221,18 @@ const History: React.FC = () => {
                           <div className="flex items-center">
                             <CalendarIcon className="h-4 w-4 mr-1" />
                             {new Date(incident.timestamp).toLocaleString()}
+                          </div>
+                          <div className="flex items-center">
+                            <ClipboardDocumentCheckIcon className="h-4 w-4 mr-1" />
+                            Note: {incident.completion_notes || "N/A"}
+                          </div>
+                          <div className="flex items-center">
+                            <PencilIcon className="h-4 w-4 mr-1" />
+                            Time taken: {calculateDuration(incident.timestamp, incident.updatedAt)}
+                          </div>
+                          <div className="flex items-center">
+                            <UserGroupIcon className="h-4 w-4 mr-1" />
+                            Firefighters: {assignedFirefighters.map((f) => f.name).join(", ") || "N/A"}
                           </div>
                         </div>
                       </div>

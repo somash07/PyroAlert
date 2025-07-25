@@ -9,6 +9,7 @@ export const fetchDepartments = createAsyncThunk("departments/fetch", async () =
   return response.data.data; 
 });
 
+
 interface DepartmentsState {
   departments: User[];
   loading: boolean;

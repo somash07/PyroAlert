@@ -9,7 +9,7 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { CiCircleCheck } from "react-icons/ci";
-import { CheckCircle, MapPin, XCircle } from "lucide-react";
+import { CheckCircle, ExternalLink, MapPin, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { confirmAndSend } from "@/services/incidentService";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import type { AppDispatch, RootState } from "@/store/store";
 import { loadActiveIncidents } from "@/store/slices/incidentsSlice";
 import { DotLoader } from "react-spinners";
 import { GiSmokeBomb } from "react-icons/gi";
+import { useState } from "react";
 
 interface IncidentCardProps {
   incident: Incident;
@@ -36,6 +37,8 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
 
   const { loading } = useSelector((state: RootState) => state.incidents);
 
+  const [acceptLoading, setAcceptLoading] = useState(false);
+
   const storedUser = localStorage.getItem("userInfo");
   const storedUserLat = storedUser ? JSON.parse(storedUser)?.lat : null;
   const storedUserLng = storedUser ? JSON.parse(storedUser)?.lng : null;
@@ -53,6 +56,17 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handleAccept = async (id: string) => {
+    try {
+      setAcceptLoading(true); // ✅ Start loading
+      await onAccept(id);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAcceptLoading(false); // ✅ End loading
     }
   };
 
@@ -101,7 +115,7 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
           {incident.alert_type === "smoke" ? (
             <GiSmokeBomb size={40} />
           ) : (
-            <FireIcon className="h-6 w-6 text-red-500 mr-3" />
+            <FireIcon className="h-9 w-9 text-red-500 mr-3" />
           )}
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
@@ -136,16 +150,21 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
             <p className="text-xs text-gray-500">Distance: {distance} km</p>
           </div>
         )}
-        <div className="col-span-2">
+        <div className="col-span-2 flex items-center gap-2">
+          <p className="text-xs text-gray-500">Location: {incident.location}</p>
           <a
             href={`https://www.google.com/maps?q=${incident.geo_location?.coordinates[1]},${incident.geo_location?.coordinates[0]}`}
             target="_blank"
             rel="noreferrer"
           >
-            <Button variant="outline" size="sm">
+            {/* <Button variant="outline" size="sm">
               <MapPin className="h-3 w-3 mr-1" />
               View on Google Maps
-            </Button>
+            </Button> */}
+            <ExternalLink
+              size={15}
+              className="text-gray-500 hover:text-gray-900"
+            />
           </a>
         </div>
       </div>
@@ -172,11 +191,11 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
       {incident.status === "pending_response" && (
         <div className="flex gap-2">
           <Button
-            onClick={() => onAccept(incident._id)}
+            onClick={() => handleAccept(incident._id)}
             className="bg-green-600 hover:bg-green-700 text-white text-sm w-[100px]"
           >
             <CheckCircle className="w-4 h-4 mr-1" />
-            {loading ? <DotLoader size={10} color="#ffffff" /> : "Accept"}
+            {acceptLoading ? <DotLoader size={10} color="#ffffff" /> : "Accept"}
           </Button>
           <Button
             variant="destructive"
@@ -184,7 +203,7 @@ const IncidentCard: React.FC<IncidentCardProps> = ({
             onClick={() => onReject(incident._id)}
           >
             <XCircle className="w-4 h-4 mr-1" />
-            {loading ? <DotLoader size={10} color="#ffffff" /> : "Reject"}
+            Reject
           </Button>
         </div>
       )}

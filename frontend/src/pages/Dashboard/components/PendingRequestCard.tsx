@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import type { Incident } from "@/types";
+import { FireIcon } from "@heroicons/react/24/outline";
 import { CheckCircle, MapPin, XCircle } from "lucide-react";
+import { GiSmokeBomb } from "react-icons/gi";
 
 const PendingRequestCard: React.FC<{
   incident: Incident;
@@ -8,20 +10,25 @@ const PendingRequestCard: React.FC<{
   onReject: (id: string) => void;
 }> = ({ incident, onAccept, onReject }) => {
   return (
-    <div className="p-4 rounded-md shadow-lg bg-stone-50 hover:shadow-md transition-shadow w-full h-auto md:flex md:flex-col md:justify-end">
+    <div className="p-4 rounded-md shadow-lg bg-stone-50 hover:shadow-md transition-shadow w-full h-auto md:flex md:flex-col justify-end">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
         <div className="flex items-start w-full">
           <div className="flex flex-col gap-3 w-full">
             <h4 className="font-bold text-gray-600 flex flex-wrap items-center gap-2 justify-around w-full">
               {/* {incident.alert_type === "fire" ? "Fire Detected" : "Smoke Detected"} */}
-              <p className="px-2 py-1 bg-red-400 text-white text-xs rounded-full animate-pulse">
-                ACTION REQUIRED
-              </p>
+              {incident.alert_type === "smoke" ? (
+                <GiSmokeBomb size={40} />
+              ) : (
+                <FireIcon className="h-9 w-9 text-red-500 mr-3" />
+              )}
               {incident.additional_info?.device_name && (
                 <p className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
                   {incident.additional_info.device_name}
                 </p>
               )}
+              <p className="px-2 py-1 bg-red-400 text-white text-xs rounded-full animate-pulse">
+                ACTION REQUIRED
+              </p>
             </h4>
           </div>
         </div>
@@ -29,7 +36,8 @@ const PendingRequestCard: React.FC<{
 
       <div className="text-xs text-gray-600 space-y-1 mb-3">
         <p>
-          <b>Id: #</b>{incident._id.slice(-6)}
+          <b>Id: #</b>
+          {incident._id.slice(-6)}
         </p>
         <p>
           <b>Time: </b> {new Date(incident.timestamp).toLocaleString()}
@@ -86,10 +94,10 @@ const PendingRequestCard: React.FC<{
             rel="noopener noreferrer"
           >
             <Button
-              className="w-auto h-auto p-1 mt-1 hover:cursor-pointer text-sm"
+              className="w-auto h-auto p-2 mt-1 hover:cursor-pointer text-sm "
               variant="outline"
             >
-              <MapPin className="w-3 h-3 mr-1" />
+              {/* <MapPin className="w-3 h-3 mr-1" /> */}
               View on Maps
             </Button>
           </a>

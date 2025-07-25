@@ -195,7 +195,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {pendingRequests.length > 0 && (
-        <div className=" bg-white p-6 m-4 ">
+        <div className="p-6 m-4 rounded-md bg-orange-50">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold flex items-center">
               <AlertTriangle className="w-5 h-5 mr-2 text-orange-400" />
@@ -212,7 +212,7 @@ const Dashboard: React.FC = () => {
                   handleAccept(
                     incident._id.toString(),
                     storedDepartmentId.toString()
-                  )
+                  ) 
                 }
                 onReject={() =>
                   handleReject(
