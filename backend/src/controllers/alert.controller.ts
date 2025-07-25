@@ -610,6 +610,7 @@ export const getAllIncidentsAssignedToFirefighter = async (
 
     const incidents = await Incident.find({
       "assigned_firefighters.ids": firefighterId,
+      status: { $in: ["assigned", "dispatched", "completed"] },
     });
 
     const incidentToSend = incidents.map((i) => ({
