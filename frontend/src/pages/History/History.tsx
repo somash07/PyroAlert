@@ -18,9 +18,11 @@ import {
   UserGroupIcon,
   PencilIcon,
   ClipboardDocumentCheckIcon,
+  FireIcon,
 } from "@heroicons/react/24/outline";
 import type { Firefighter, Incident } from "../../types";
-
+import { GiSmokeBomb } from "react-icons/gi";
+import { ExternalLink } from "lucide-react";
 
 const History: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -28,10 +30,11 @@ const History: React.FC = () => {
     (state: RootState) => state.incidents
   );
   const activeIncidents = useSelector(selectActiveIncidents);
+  console.log("active: ", activeIncidents);
   const { firefighters } = useSelector(
     (state: RootState) => state.firefighters
   );
-
+  console.log("ff: ", firefighters);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState<string>("all");
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(
@@ -95,13 +98,14 @@ const History: React.FC = () => {
     if (!incident?.assigned_firefighters) return [];
 
     return firefighters.filter((ff) =>
-      incident.assigned_firefighters?.some(
-        (assigned) => assigned._id === ff._id
-      )
+      incident.assigned_firefighters?.includes(ff._id)
     );
   };
 
-  const calculateDuration = (start: string | Date, end: string | Date): string => {
+  const calculateDuration = (
+    start: string | Date,
+    end: string | Date
+  ): string => {
     const startTime = new Date(start).getTime();
     const endTime = new Date(end).getTime();
     const duration = endTime - startTime;
@@ -186,7 +190,9 @@ const History: React.FC = () => {
             </div>
           ) : (
             filteredIncidents.map((incident) => {
-              const assignedFirefighters = getAssignedFirefighters(incident._id);
+              const assignedFirefighters = getAssignedFirefighters(
+                incident._id
+              );
 
               return (
                 <div
@@ -199,8 +205,17 @@ const History: React.FC = () => {
                       <CheckCircleIcon className="h-5 w-5 text-green-500 mt-1" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="text-lg font-medium text-gray-900">
-                            Completed Fire Incident
+                          <h3 className="text-lg font-medium text-gray-900 flex">
+                            <p>
+                              {incident.alert_type === "smoke" ? (
+                                <GiSmokeBomb size={30} />
+                              ) : (
+                                <FireIcon className="h-7 w-7 text-red-500 mr-3" />
+                              )}
+                            </p>
+                            Completed{" "}
+                            {incident.alert_type === "fire" ? "Fire" : "Smoke"}{" "}
+                            Incident
                           </h3>
                           <span className="text-sm text-gray-500">
                             #{incident._id.slice(-6)}
@@ -208,15 +223,22 @@ const History: React.FC = () => {
                         </div>
 
                         <div className="space-y-1 text-sm text-gray-600">
-                          <div className="flex items-center">
+                          <div className="flex items-center gap-2">
+                            <p>Location : {incident.location}</p>
                             <a
                               href={`https://www.google.com/maps?q=${incident.geo_location?.coordinates[1]},${incident.geo_location?.coordinates[0]}`}
                               target="_blank"
-                              rel="noopener noreferrer"
+                              rel="noreferrer"
                             >
-                              <MapPinIcon className="h-4 w-4 mr-1" />
+                              <ExternalLink
+                                size={15}
+                                className="text-gray-500 hover:text-gray-900"
+                              />
+                              {/* <Button variant="outline" size="sm">
+              <MapPin className="h-3 w-3 mr-1" />
+              View on Google Maps
+            </Button> */}
                             </a>
-                            {incident.location}
                           </div>
                           <div className="flex items-center">
                             <CalendarIcon className="h-4 w-4 mr-1" />
@@ -228,11 +250,18 @@ const History: React.FC = () => {
                           </div>
                           <div className="flex items-center">
                             <PencilIcon className="h-4 w-4 mr-1" />
-                            Time taken: {calculateDuration(incident.timestamp, incident.updatedAt)}
+                            Time taken:{" "}
+                            {calculateDuration(
+                              incident.timestamp,
+                              incident.updatedAt
+                            )}
                           </div>
                           <div className="flex items-center">
                             <UserGroupIcon className="h-4 w-4 mr-1" />
-                            Firefighters: {assignedFirefighters.map((f) => f.name).join(", ") || "N/A"}
+                            Firefighters:{" "}
+                            {assignedFirefighters
+                              .map((f) => f.name)
+                              .join(", ") || "N/A"}
                           </div>
                         </div>
                       </div>

@@ -36,8 +36,8 @@ export const getFirefightersByDepartment = async (
   }
 
   try {
-    const firefighters = await Firefighter.find({ departmentId }).sort({
-      name: 1,
+    const firefighters = await Firefighter.find({
+      departmentId: new mongoose.Types.ObjectId(departmentId),
     });
 
     res.status(200).json({
@@ -184,7 +184,7 @@ export const createFirefighter = async (
       address,
       departmentId,
       status,
-      x : imagePath,
+      x: imagePath,
       resetPasswordToken,
       resetPasswordExpiry,
     });

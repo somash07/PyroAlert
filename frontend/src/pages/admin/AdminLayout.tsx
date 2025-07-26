@@ -7,7 +7,7 @@ import AdminSidebar from "./AdminSidebar";
 
 const menuItems = [
   { id: "system", label: "System", icon: Cog },
-  { id: "settings", label: "Settings", icon: Settings2 },
+
 ];
 
 const AdminLayout: React.FC = () => {

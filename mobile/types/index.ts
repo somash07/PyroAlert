@@ -22,6 +22,7 @@ export interface Incident {
   confidence: number;
   status: string;
   leaderId: string;
+  completion_notes: string;
   assigned_department: string;
   // geo_location: GeoLocation;
   response_time: string;

@@ -15,7 +15,7 @@ export interface FireIncident {
     | "assigned"
     | "dispatched"
     | "completed";
-  assignedFirefighters?: string[];
+  assignedFirefighters?: {ids: string[], leaderId: string }[];
   fireDepartmentId?: string;
   confidence?: number;
   detectionMethod?: string;
